@@ -1,5 +1,6 @@
 .chat-scroll-area {
-  height: 420px;
+  height: calc(100vh - 320px);
+  min-height: 400px;
   overflow-y: auto;
   padding: 1em 0.5em;
   display: flex;
@@ -72,11 +73,36 @@
   gap: 0.5em;
   padding-top: 0.75em;
   border-top: 1px solid rgba(34, 36, 38, 0.1);
-  align-items: center;
+  align-items: flex-end;
 }
 
 .chat-input-bar input {
   flex: 1;
+}
+
+.chat-textarea {
+  flex: 1;
+  resize: none;
+  border: 1px solid rgba(34, 36, 38, 0.15);
+  border-radius: 8px;
+  padding: 0.65em 0.9em;
+  font-size: 0.95em;
+  line-height: 1.5;
+  font-family: inherit;
+  outline: none;
+  background: rgba(255, 255, 255, 0.8);
+  color: #2C2C2C;
+  transition: border-color 0.15s ease;
+}
+
+.chat-textarea:focus {
+  border-color: #7B4397;
+  box-shadow: 0 0 0 2px rgba(123, 67, 151, 0.1);
+}
+
+.chat-textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Source citations */
@@ -107,7 +133,8 @@
 
 @media only screen and (max-width: 850px) {
   .chat-scroll-area {
-    height: 340px;
+    height: calc(100vh - 280px);
+    min-height: 300px;
   }
 
   .chat-bubble {

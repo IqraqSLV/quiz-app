@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Container, Segment, Input, Button, Header } from 'semantic-ui-react';
+import { Container, Segment, Button, Header } from 'semantic-ui-react';
 import { topicLabels } from '../../data/topicMap';
 import './Chat.css';
 
@@ -225,13 +225,14 @@ const Chat = () => {
 
         {/* Input bar */}
         <div className="chat-input-bar">
-          <Input
-            fluid
-            placeholder="Type your question..."
+          <textarea
+            className="chat-textarea"
+            placeholder="Type your question... (Enter to send, Shift+Enter for new line)"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={loading}
+            rows={3}
           />
           <Button
             className="purple-button"
