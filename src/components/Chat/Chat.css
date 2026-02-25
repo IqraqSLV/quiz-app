@@ -79,6 +79,32 @@
   flex: 1;
 }
 
+/* Source citations */
+.chat-sources {
+  margin-top: 0.75em;
+  padding-top: 0.5em;
+  border-top: 1px solid rgba(123, 67, 151, 0.15);
+  font-size: 0.82em;
+  color: #555;
+}
+
+.chat-source-item {
+  margin-top: 0.35em;
+}
+
+.chat-source-filename {
+  font-weight: 600;
+  display: block;
+  color: #7B4397;
+}
+
+.chat-source-snippet {
+  display: block;
+  color: #666;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 @media only screen and (max-width: 850px) {
   .chat-scroll-area {
     height: 340px;

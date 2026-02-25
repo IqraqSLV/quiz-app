@@ -36,14 +36,24 @@ const Chat = () => {
     setInput('');
     setLoading(true);
 
-    // MOCK — replace with fetch('http://localhost:8000/chat', ...) in P2-07
-    await new Promise(r => setTimeout(r, 800));
+    let assistantContent = '';
+    let newSources = [];
+    try {
+      const res = await fetch('http://localhost:8000/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: text, session_id: null, access_level: 'all' }),
+      });
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+      const data = await res.json();
+      assistantContent = data.answer || '(No answer returned)';
+      newSources = data.sources || [];
+    } catch (err) {
+      assistantContent = 'Sorry, I could not reach the HR Helpdesk service. Please try again.';
+    }
     setMessages(prev => [
       ...prev,
-      {
-        role: 'assistant',
-        content: '(Mock) The backend RAG endpoint is not connected yet. This will be answered by the HR Helpdesk AI in P2-07.',
-      },
+      { role: 'assistant', content: assistantContent, sources: newSources },
     ]);
     setLoading(false);
   };
@@ -76,7 +86,20 @@ const Chat = () => {
         <div className="chat-scroll-area">
           {messages.map((msg, i) => (
             <div key={i} className={`chat-bubble-wrap ${msg.role}`}>
-              <div className={`chat-bubble ${msg.role}`}>{msg.content}</div>
+              <div className={`chat-bubble ${msg.role}`}>
+                {msg.content}
+                {msg.sources && msg.sources.length > 0 && (
+                  <div className="chat-sources">
+                    <strong>Sources:</strong>
+                    {msg.sources.map((src, si) => (
+                      <div key={si} className="chat-source-item">
+                        <span className="chat-source-filename">{src.filename}</span>
+                        <span className="chat-source-snippet">{src.snippet}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           ))}
 
