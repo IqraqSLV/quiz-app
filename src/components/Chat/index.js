@@ -35,6 +35,7 @@ const Chat = () => {
   const [messages, setMessages] = useState([INITIAL_MESSAGE]);
   const [input, setInput] = useState(location.state?.prefill || '');
   const [loading, setLoading] = useState(false);
+  const [ratedMessages, setRatedMessages] = useState(new Set());
   const bottomRef = useRef(null);
 
   const state = location.state || {};
@@ -105,6 +106,27 @@ const Chat = () => {
     sendMessage(prompt);
   };
 
+  const handleFeedback = async (msgIndex, rating) => {
+    setRatedMessages((prev) => new Set(prev).add(msgIndex));
+    const userMsg = messages[msgIndex - 1];
+    const assistantMsg = messages[msgIndex];
+    try {
+      await fetch(`${API_BASE}/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: 'anonymous',
+          message_idx: msgIndex,
+          rating,
+          query: userMsg?.content || '',
+          answer: assistantMsg?.content || '',
+        }),
+      });
+    } catch {
+      // Feedback is best-effort — don't disrupt the chat
+    }
+  };
+
   return (
     <Container className="quiz-container page-container">
       <Segment
@@ -137,6 +159,22 @@ const Chat = () => {
                         <span className="chat-source-snippet">{src.snippet}</span>
                       </div>
                     ))}
+                  </div>
+                )}
+                {msg.role === 'assistant' && i > 0 && (
+                  <div className="chat-feedback">
+                    {ratedMessages.has(i) ? (
+                      <span className="chat-feedback-thanks">Thanks for your feedback!</span>
+                    ) : (
+                      <>
+                        <button className="feedback-btn up" onClick={() => handleFeedback(i, 'up')} title="Helpful">
+                          &#128077;
+                        </button>
+                        <button className="feedback-btn down" onClick={() => handleFeedback(i, 'down')} title="Not helpful">
+                          &#128078;
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>

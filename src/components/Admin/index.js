@@ -37,6 +37,8 @@ const Admin = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [loadError, setLoadError] = useState(null);
+  const [chatFeedback, setChatFeedback] = useState([]);
+  const [generalFeedback, setGeneralFeedback] = useState([]);
 
   useEffect(() => {
     document.title = 'Solarvest HR Admin';
@@ -53,9 +55,29 @@ const Admin = () => {
     }
   }, []);
 
+  const fetchFeedback = useCallback(async () => {
+    try {
+      const [chatRes, generalRes] = await Promise.all([
+        fetch(`${API_BASE}/feedback`),
+        fetch(`${API_BASE}/feedback/general`),
+      ]);
+      if (chatRes.ok) {
+        const data = await chatRes.json();
+        setChatFeedback(data.feedback || []);
+      }
+      if (generalRes.ok) {
+        const data = await generalRes.json();
+        setGeneralFeedback(data.feedback || []);
+      }
+    } catch {
+      /* best-effort */
+    }
+  }, []);
+
   useEffect(() => {
     fetchDocuments();
-  }, [fetchDocuments]);
+    fetchFeedback();
+  }, [fetchDocuments, fetchFeedback]);
 
   const handleUpload = async () => {
     if (!file) return;
@@ -280,6 +302,107 @@ const Admin = () => {
                         onClick={() => handleDelete(doc.id, doc.filename)}
                       />
                     </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table>
+          </div>
+        )}
+      </Segment>
+
+      {/* Chat Feedback Ratings */}
+      <Segment style={glassmorphism}>
+        <Header as="h3" style={{ color: '#1A1A1A', marginBottom: '1em' }}>
+          Chat Ratings
+        </Header>
+
+        {chatFeedback.length > 0 && (
+          <div style={{ marginBottom: '1em', display: 'flex', gap: '1em' }}>
+            <Label size="medium">
+              Total <Label.Detail>{chatFeedback.length}</Label.Detail>
+            </Label>
+            <Label color="green" size="medium">
+              &#128077; <Label.Detail>{chatFeedback.filter((f) => f.rating === 'up').length}</Label.Detail>
+            </Label>
+            <Label color="red" size="medium">
+              &#128078; <Label.Detail>{chatFeedback.filter((f) => f.rating === 'down').length}</Label.Detail>
+            </Label>
+          </div>
+        )}
+
+        {chatFeedback.length === 0 ? (
+          <p style={{ color: '#2C2C2C', fontStyle: 'italic' }}>
+            No chat ratings yet.
+          </p>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <Table striped className="transparent-table">
+              <Table.Header>
+                <Table.Row>
+                  <Table.HeaderCell>Date</Table.HeaderCell>
+                  <Table.HeaderCell>Rating</Table.HeaderCell>
+                  <Table.HeaderCell>User Question</Table.HeaderCell>
+                </Table.Row>
+              </Table.Header>
+              <Table.Body>
+                {chatFeedback.slice(0, 20).map((fb) => (
+                  <Table.Row key={fb.id}>
+                    <Table.Cell style={{ whiteSpace: 'nowrap' }}>
+                      {formatDate(fb.created_at)}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Label
+                        color={fb.rating === 'up' ? 'green' : 'red'}
+                        size="tiny"
+                      >
+                        {fb.rating === 'up' ? '\u{1F44D}' : '\u{1F44E}'}
+                      </Label>
+                    </Table.Cell>
+                    <Table.Cell>
+                      {fb.query
+                        ? fb.query.length > 80
+                          ? fb.query.slice(0, 80) + '...'
+                          : fb.query
+                        : '-'}
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table>
+          </div>
+        )}
+      </Segment>
+
+      {/* General Feedback Comments */}
+      <Segment style={glassmorphism}>
+        <Header as="h3" style={{ color: '#1A1A1A', marginBottom: '1em' }}>
+          General Comments
+        </Header>
+
+        {generalFeedback.length === 0 ? (
+          <p style={{ color: '#2C2C2C', fontStyle: 'italic' }}>
+            No general feedback yet.
+          </p>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <Table striped className="transparent-table">
+              <Table.Header>
+                <Table.Row>
+                  <Table.HeaderCell>Date</Table.HeaderCell>
+                  <Table.HeaderCell>Category</Table.HeaderCell>
+                  <Table.HeaderCell>Comment</Table.HeaderCell>
+                </Table.Row>
+              </Table.Header>
+              <Table.Body>
+                {generalFeedback.slice(0, 20).map((fb) => (
+                  <Table.Row key={fb.id}>
+                    <Table.Cell style={{ whiteSpace: 'nowrap' }}>
+                      {formatDate(fb.created_at)}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Label size="tiny">{fb.category}</Label>
+                    </Table.Cell>
+                    <Table.Cell>{fb.comment}</Table.Cell>
                   </Table.Row>
                 ))}
               </Table.Body>

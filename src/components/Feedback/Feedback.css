@@ -1,0 +1,4 @@
+/* Feedback page (P3-14) — minimal, inherits global styles */
+.feedback-form textarea {
+  min-height: 120px;
+}
