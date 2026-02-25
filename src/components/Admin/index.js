@@ -11,7 +11,7 @@ import {
 } from 'semantic-ui-react';
 import './Admin.css';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
 
 const glassmorphism = {
   background: 'rgba(255, 255, 255, 0.4)',

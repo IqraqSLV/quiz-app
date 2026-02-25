@@ -4,6 +4,8 @@ import { Container, Segment, Input, Button, Header } from 'semantic-ui-react';
 import { topicLabels } from '../../data/topicMap';
 import './Chat.css';
 
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
+
 const INITIAL_MESSAGE = {
   role: 'assistant',
   content: 'Hi! Ask me anything about leave, benefits, or company policy.',
@@ -71,7 +73,7 @@ const Chat = () => {
     let assistantContent = '';
     let newSources = [];
     try {
-      const res = await fetch('http://localhost:8000/chat', {
+      const res = await fetch(`${API_BASE}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: text, session_id: null, access_level: 'all' }),
