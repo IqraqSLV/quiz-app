@@ -10,6 +10,7 @@ const QNA = ({ questionsAndAnswers }) => {
     navigate('/chat', {
       state: {
         prefill: `Explain the HR policy related to: "${question}" — the correct answer is "${correctAnswer}".`,
+        entrypoint: 'quiz_result',
       },
     });
   };
@@ -18,6 +19,7 @@ const QNA = ({ questionsAndAnswers }) => {
     navigate('/chat', {
       state: {
         prefill: `Show me the official HR policy source for: "${question}"`,
+        entrypoint: 'quiz_result',
       },
     });
   };

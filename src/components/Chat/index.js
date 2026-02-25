@@ -17,6 +17,11 @@ const Chat = () => {
 
   useEffect(() => {
     document.title = 'Solarvest HR Chat';
+    const entrypoint = location.state?.entrypoint || 'direct';
+    sessionStorage.setItem('chat_entrypoint', entrypoint);
+    window.dispatchEvent(new CustomEvent('telemetry', {
+      detail: { event: 'chat_session_start', entrypoint },
+    }));
   }, []);
 
   useEffect(() => {

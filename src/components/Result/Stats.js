@@ -163,7 +163,7 @@ const Stats = ({
             className="purple-button"
             icon
             labelPosition="right"
-            onClick={() => navigate('/chat')}
+            onClick={() => navigate('/chat', { state: { entrypoint: 'quiz_result' } })}
           >
             Ask HR Assistant
             <Icon name="chat" />
