@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import { Segment, Table, Button } from 'semantic-ui-react';
 import { useNavigate } from 'react-router-dom';
 
+import { topicMap } from '../../data/topicMap';
+
 const QNA = ({ questionsAndAnswers }) => {
   const navigate = useNavigate();
 
@@ -11,6 +13,7 @@ const QNA = ({ questionsAndAnswers }) => {
       state: {
         prefill: `Explain the HR policy related to: "${question}" — the correct answer is "${correctAnswer}".`,
         entrypoint: 'quiz_result',
+        topic: topicMap[question] ?? null,
       },
     });
   };
@@ -20,6 +23,7 @@ const QNA = ({ questionsAndAnswers }) => {
       state: {
         prefill: `Show me the official HR policy source for: "${question}"`,
         entrypoint: 'quiz_result',
+        topic: topicMap[question] ?? null,
       },
     });
   };

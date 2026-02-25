@@ -4,12 +4,14 @@ import { Segment, Header, Message, Button, Icon } from 'semantic-ui-react';
 import { useNavigate } from 'react-router-dom';
 
 import { calculateScore, calculateGrade, timeConverter } from '../../utils';
+import { topicMap } from '../../data/topicMap';
 
 const Stats = ({
   totalQuestions,
   correctAnswers,
   timeTaken,
   userData,
+  questionsAndAnswers,
 }) => {
   const navigate = useNavigate();
   const score = calculateScore(totalQuestions, correctAnswers);
@@ -17,6 +19,14 @@ const Stats = ({
   const { hours, minutes, seconds } = timeConverter(timeTaken);
   const normalizedGrade = grade ? grade[0] : null;
   const wrongAnswers = totalQuestions - correctAnswers;
+  const weakTopics = [
+    ...new Set(
+      (questionsAndAnswers || [])
+        .filter(item => item.point === 0)
+        .map(item => topicMap[item.question] ?? null)
+        .filter(Boolean)
+    ),
+  ];
 
   // Extract first name for personalization
   const firstName = userData.fullName.split(' ')[0];
@@ -163,7 +173,7 @@ const Stats = ({
             className="purple-button"
             icon
             labelPosition="right"
-            onClick={() => navigate('/chat', { state: { entrypoint: 'quiz_result' } })}
+            onClick={() => navigate('/chat', { state: { entrypoint: 'quiz_result', weakTopics } })}
           >
             Ask HR Assistant
             <Icon name="chat" />
@@ -179,6 +189,7 @@ Stats.propTypes = {
   correctAnswers: PropTypes.number.isRequired,
   timeTaken: PropTypes.number.isRequired,
   userData: PropTypes.object.isRequired,
+  questionsAndAnswers: PropTypes.array,
 };
 
 export default Stats;
