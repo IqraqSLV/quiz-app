@@ -22,6 +22,7 @@ const glassmorphism = {
 
 const STATUS_COLORS = {
   pending: 'grey',
+  ingesting: 'yellow',
   ingested: 'green',
   error: 'red',
 };
@@ -32,6 +33,7 @@ const Admin = () => {
   const [docType, setDocType] = useState('pdf');
   const [accessLevel, setAccessLevel] = useState('all');
   const [uploading, setUploading] = useState(false);
+  const [ingestingId, setIngestingId] = useState(null);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [loadError, setLoadError] = useState(null);
@@ -83,6 +85,26 @@ const Admin = () => {
       setError(err.message || 'Upload failed');
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleIngest = async (id) => {
+    setIngestingId(id);
+    setError(null);
+    setSuccess(null);
+    try {
+      const res = await fetch(`${API_BASE}/ingest/${id}`, { method: 'POST' });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || 'Ingest failed');
+      }
+      const data = await res.json();
+      setSuccess(`Document ingested successfully — ${data.chunks_stored} chunks stored.`);
+      fetchDocuments();
+    } catch (err) {
+      setError(err.message || 'Ingest failed');
+    } finally {
+      setIngestingId(null);
     }
   };
 
@@ -237,6 +259,19 @@ const Admin = () => {
                     </Table.Cell>
                     <Table.Cell>{formatDate(doc.ingested_at)}</Table.Cell>
                     <Table.Cell>
+                      {(doc.status === 'pending' || doc.status === 'error') && (
+                        <Button
+                          size="tiny"
+                          className="purple-button"
+                          icon="play"
+                          content="Ingest"
+                          labelPosition="left"
+                          loading={ingestingId === doc.id}
+                          disabled={ingestingId !== null}
+                          onClick={() => handleIngest(doc.id)}
+                          style={{ marginRight: '0.4em' }}
+                        />
+                      )}
                       <Button
                         negative
                         size="tiny"
