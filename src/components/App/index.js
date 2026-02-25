@@ -8,6 +8,7 @@ import Main from '../Main';
 import Quiz from '../Quiz';
 import Result from '../Result';
 import Chat from '../Chat';
+import Admin from '../Admin';
 
 import { calculateGrade, calculateScore, shuffle } from '../../utils';
 import { isSupabaseConfigured, supabase } from '../../lib/supabaseClient';
@@ -187,6 +188,7 @@ const App = () => {
       <Route path="/hr" element={<QuizApp config={quizConfig.hr} />} />
       <Route path="/mctf" element={<QuizApp config={quizConfig.mctf} />} />
       <Route path="/chat" element={<Chat />} />
+      <Route path="/admin" element={<Admin />} />
       {/* Default redirect to HR quiz */}
       <Route path="/" element={<Navigate to="/hr" replace />} />
       <Route path="*" element={<Navigate to="/hr" replace />} />

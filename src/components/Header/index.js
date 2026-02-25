@@ -48,6 +48,9 @@ const Header = () => {
         <Menu.Item as={Link} to="/chat" style={navStyle('/chat')}>
           HR Chat
         </Menu.Item>
+        <Menu.Item as={Link} to="/admin" style={navStyle('/admin')}>
+          Admin
+        </Menu.Item>
       </Menu.Menu>
     </Menu>
   );

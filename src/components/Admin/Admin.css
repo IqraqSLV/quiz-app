@@ -1,0 +1,25 @@
+.admin-upload-form {
+  display: flex;
+  gap: 1em;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.admin-upload-form .field {
+  flex: 1;
+  min-width: 140px;
+}
+
+.admin-file-field {
+  flex: 2 !important;
+}
+
+@media only screen and (max-width: 850px) {
+  .admin-upload-form {
+    flex-direction: column;
+  }
+
+  .admin-upload-form .field {
+    width: 100%;
+  }
+}
