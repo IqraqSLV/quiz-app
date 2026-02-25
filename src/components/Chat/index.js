@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Container, Segment, Input, Button, Header } from 'semantic-ui-react';
 import './Chat.css';
 
@@ -8,8 +9,9 @@ const INITIAL_MESSAGE = {
 };
 
 const Chat = () => {
+  const location = useLocation();
   const [messages, setMessages] = useState([INITIAL_MESSAGE]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState(location.state?.prefill || '');
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
 
