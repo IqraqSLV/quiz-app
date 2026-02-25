@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Container, Segment, Input, Button, Header } from 'semantic-ui-react';
+import { topicLabels } from '../../data/topicMap';
 import './Chat.css';
 
 const INITIAL_MESSAGE = {
@@ -8,12 +9,43 @@ const INITIAL_MESSAGE = {
   content: 'Hi! Ask me anything about leave, benefits, or company policy.',
 };
 
+const TOPIC_PROMPTS = {
+  company_culture:     "What are Solarvest's core values and how do they shape the workplace?",
+  probation:           'What are the key rules and expectations during the probation period?',
+  working_hours:       'What are the official working hours and flexible work arrangements at Solarvest?',
+  annual_leave:        'How do I apply for annual leave and what is the entitlement?',
+  medical_leave:       'What is the medical leave entitlement and what documents do I need to submit?',
+  maternity_leave:     'How many days of maternity leave am I entitled to and how do I apply?',
+  paternity_leave:     'What is the paternity leave policy and how do I apply for it?',
+  overtime:            'Who approves overtime and what is the eligibility criteria?',
+  outpatient_benefits: 'What outpatient medical benefits am I entitled to and how do I claim them?',
+  claims_expenses:     'How do I submit expense claims and what are the reimbursable items?',
+  compassionate_leave: 'What is the compassionate leave entitlement and when does it apply?',
+  hr_systems:          'Where can I find HR forms and how do I use the HR systems?',
+  payroll:             'When is salary paid and how do I handle payroll-related queries?',
+  benefits_insurance:  'What insurance and benefits am I entitled to as a Solarvest employee?',
+};
+const GENERIC_PROMPT = 'Can you summarise the key HR policies I should know about?';
+const GENERIC_LABEL  = 'Review HR Policies';
+
 const Chat = () => {
   const location = useLocation();
   const [messages, setMessages] = useState([INITIAL_MESSAGE]);
   const [input, setInput] = useState(location.state?.prefill || '');
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
+
+  const state = location.state || {};
+  const isQuizEntry = state.entrypoint === 'quiz_result';
+  let cardTopics = [];
+  if (isQuizEntry) {
+    if (Array.isArray(state.weakTopics) && state.weakTopics.length > 0) {
+      cardTopics = state.weakTopics.slice(0, 4);
+    } else if (state.topic) {
+      cardTopics = [state.topic];
+    }
+  }
+  const showCards = isQuizEntry && messages.length === 1;
 
   useEffect(() => {
     document.title = 'Solarvest HR Chat';
@@ -28,8 +60,8 @@ const Chat = () => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  const sendMessage = async () => {
-    const text = input.trim();
+  const sendMessage = async (overrideText) => {
+    const text = (overrideText !== undefined ? overrideText : input).trim();
     if (!text || loading) return;
 
     setMessages(prev => [...prev, { role: 'user', content: text }]);
@@ -63,6 +95,12 @@ const Chat = () => {
       e.preventDefault();
       sendMessage();
     }
+  };
+
+  const handleCardClick = (prompt) => {
+    if (loading) return;
+    setInput(prompt);
+    sendMessage(prompt);
   };
 
   return (
@@ -117,6 +155,33 @@ const Chat = () => {
 
           <div ref={bottomRef} />
         </div>
+
+        {/* Suggestion cards — shown only on quiz_result entry before first message */}
+        {showCards && (
+          <div className="suggestion-cards">
+            {cardTopics.length > 0
+              ? cardTopics.map((key) => (
+                  <button
+                    key={key}
+                    className="suggestion-card"
+                    onClick={() => handleCardClick(TOPIC_PROMPTS[key] || GENERIC_PROMPT)}
+                  >
+                    <span className="suggestion-card-label">{topicLabels[key]}</span>
+                    <span className="suggestion-card-prompt">{TOPIC_PROMPTS[key] || GENERIC_PROMPT}</span>
+                  </button>
+                ))
+              : (
+                  <button
+                    className="suggestion-card"
+                    onClick={() => handleCardClick(GENERIC_PROMPT)}
+                  >
+                    <span className="suggestion-card-label">{GENERIC_LABEL}</span>
+                    <span className="suggestion-card-prompt">{GENERIC_PROMPT}</span>
+                  </button>
+                )
+            }
+          </div>
+        )}
 
         {/* Input bar */}
         <div className="chat-input-bar">
