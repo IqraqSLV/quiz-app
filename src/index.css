@@ -1,1 +1,356 @@
 @import url(../node_modules/semantic-ui-css/semantic.min.css);
+
+/* Gotham font family with fallbacks (using Montserrat as free alternative) */
+body {
+  font-family: 'Montserrat', 'Gotham', 'Helvetica Neue', Arial, sans-serif !important;
+  margin: 0;
+}
+
+/* Apply Gotham/Montserrat to all text elements */
+* {
+  font-family: 'Montserrat', 'Gotham', 'Helvetica Neue', Arial, sans-serif !important;
+}
+
+/* Solarvest brand color - virtual background image */
+body {
+  background-color: #E8D5F2 !important;
+  background-image: url('./images/background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  min-height: 100vh;
+  color: #2C2C2C; /* Darker text for better contrast (WCAG AAA) */
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Improved color contrast for accessibility */
+h1, h2, h3, h4, h5, h6 {
+  color: #1A1A1A !important; /* Even darker for headings */
+}
+
+a {
+  color: #00695C; /* Darker teal for links (WCAG AA compliant) */
+}
+
+a:hover {
+  color: #004D40; /* Even darker on hover */
+}
+
+/* Ensure proper focus indicators for accessibility - Updated to purple theme */
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid #7B4397 !important;
+  outline-offset: 2px;
+  border-color: #7B4397 !important;
+}
+
+/* Form input enhancements */
+.ui.form input:focus {
+  border-color: #7B4397 !important;
+  box-shadow: 0 0 0 2px rgba(123, 67, 151, 0.1) !important;
+}
+
+.ui.form input::placeholder {
+  color: #AAAAAA;
+  opacity: 0.8;
+}
+
+/* Solarvest purple button - solid color only */
+.purple-button,
+.purple-button.ui.button,
+.ui.button.purple-button {
+  background: #7B4397 !important;
+  background-color: #7B4397 !important;
+  background-image: none !important;
+  background-blend-mode: normal !important;
+  filter: none !important;
+  color: white !important;
+  transition: all 0.3s ease !important;
+  cursor: pointer !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Keep labeled icon buttons flat (remove darker icon strip) */
+.purple-button.ui.labeled.icon.button > .icon {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Center text on right-labeled icon buttons by matching padding */
+.purple-button.ui.right.labeled.icon.button {
+  padding-left: 4.07142857em !important;
+  padding-right: 4.07142857em !important;
+}
+
+.purple-button.ui.left.labeled.icon.button {
+  padding-left: 4.07142857em !important;
+  padding-right: 4.07142857em !important;
+}
+
+.purple-button:hover:not(:disabled),
+.purple-button.ui.button:hover:not(:disabled) {
+  background: #7B4397 !important;
+  background-color: #7B4397 !important;
+  background-image: none !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 8px rgba(123, 67, 151, 0.3) !important;
+}
+
+.purple-button:active:not(:disabled),
+.purple-button.ui.button:active:not(:disabled) {
+  background: #7B4397 !important;
+  background-color: #7B4397 !important;
+  background-image: none !important;
+  transform: translateY(0) !important;
+  box-shadow: 0 2px 4px rgba(123, 67, 151, 0.3) !important;
+}
+
+.purple-button:focus:not(:disabled),
+.purple-button.ui.button:focus:not(:disabled) {
+  background: #7B4397 !important;
+  background-color: #7B4397 !important;
+  background-image: none !important;
+}
+
+.purple-button:disabled,
+.purple-button.ui.button:disabled {
+  background: #CCCCCC !important;
+  background-color: #CCCCCC !important;
+  background-image: none !important;
+  color: #888888 !important;
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
+}
+
+/* Quiz answer options */
+.quiz-option {
+  transition: all 0.2s ease;
+  border-left: 4px solid transparent !important;
+  background-color: transparent !important;
+  font-weight: 600;
+  font-size: 1.05em !important;
+}
+
+.quiz-question-text {
+  font-size: 1.05em !important;
+  font-weight: 600 !important;
+}
+
+.quiz-option:hover {
+  background-color: rgba(123, 67, 151, 0.08) !important;
+  border-left-color: #7B4397 !important;
+  transform: translateX(4px);
+}
+
+.quiz-option.selected {
+  background-color: #7B4397 !important;
+  color: white !important;
+  border-left-color: #7B4397 !important;
+  font-weight: 600;
+}
+
+.quiz-option.selected b,
+.quiz-option.selected span {
+  color: white !important;
+}
+
+/* Improve answer option readability */
+.ui.vertical.menu.massive .item {
+  padding: 1.0em 1.2em !important;
+  font-size: 1.05em !important;
+  line-height: 1.5;
+}
+
+.ui.vertical.menu.massive .item b {
+  font-size: 1.05em;
+  margin-right: 12px;
+}
+
+/* Narrower quiz container */
+.ui.container.quiz-container {
+  max-width: 800px !important;
+  width: 800px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.ui.container.page-container {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 2em !important;
+  box-sizing: border-box;
+}
+
+.result-tabs {
+  background-color: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(34, 36, 38, 0.1);
+}
+
+.result-tabs .item {
+  background-color: transparent !important;
+}
+
+.result-tabs .active.item {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.transparent-table,
+.transparent-table thead,
+.transparent-table tbody,
+.transparent-table tr,
+.transparent-table th,
+.transparent-table td {
+  background-color: transparent !important;
+}
+
+.transparent-table tr.positive,
+.transparent-table tr.negative {
+  background-color: transparent !important;
+}
+
+@media only screen and (max-width: 850px) {
+  .ui.container.quiz-container {
+    width: auto !important;
+    margin-left: 1em !important;
+    margin-right: 1em !important;
+  }
+}
+
+/* Button pulse animation */
+@keyframes pulse-button {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 2px 4px rgba(123, 67, 151, 0.3);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 4px 12px rgba(123, 67, 151, 0.4);
+  }
+}
+
+/* Shimmer effect for buttons */
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* Apply animations to purple buttons */
+.purple-button.ui.button:not(:disabled):not(:hover) {
+  animation: pulse-button 2s ease-in-out infinite;
+}
+
+/* Disable animations on Previous/Next buttons in quiz pages */
+.quiz-container .purple-button.ui.button {
+  animation: none !important;
+}
+
+/* Success badge animation */
+@keyframes badge-bounce {
+  0% {
+    transform: scale(0) rotate(-180deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2) rotate(10deg);
+  }
+  70% {
+    transform: scale(0.9) rotate(-5deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes trophy-shine {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.3);
+  }
+}
+
+.success-badge {
+  animation: badge-bounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  display: inline-block;
+}
+
+.success-trophy {
+  animation: trophy-shine 2s ease-in-out infinite;
+  display: inline-block;
+}
+
+/* Pulse animation for timer urgency */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* ── Sticky header + responsive hamburger nav ── */
+
+.site-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 20 !important;
+}
+
+.header-nav-links {
+  display: contents; /* desktop: children flow in the Menu naturally */
+}
+
+.header-hamburger {
+  display: none !important;
+}
+
+@media only screen and (max-width: 600px) {
+  .header-hamburger {
+    display: inline-block !important;
+    background: none;
+    border: none;
+    font-size: 1.4em;
+    cursor: pointer;
+    padding: 0.3em 0.5em;
+    color: #2C2C2C;
+  }
+
+  .header-nav-links {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    min-width: 160px;
+    z-index: 30;
+  }
+
+  .header-nav-links.open {
+    display: flex;
+  }
+
+  .header-nav-links .item {
+    padding: 0.8em 1.2em !important;
+    border-bottom: none !important;
+  }
+}

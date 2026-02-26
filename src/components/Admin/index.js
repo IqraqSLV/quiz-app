@@ -240,175 +240,180 @@ const Admin = () => {
 
       {/* Document table */}
       <Segment style={glassmorphism}>
-        <Header as="h3" style={{ color: '#1A1A1A', marginBottom: '1em' }}>
-          Documents ({documents.length})
-        </Header>
+        <details className="admin-panel" open>
+          <summary className="admin-panel-toggle">
+            Documents ({documents.length})
+          </summary>
 
-        {loadError && <Message warning>{loadError}</Message>}
+          {loadError && <Message warning>{loadError}</Message>}
 
-        {documents.length === 0 && !loadError ? (
-          <p style={{ color: '#2C2C2C', fontStyle: 'italic' }}>
-            No documents uploaded yet.
-          </p>
-        ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <Table striped className="transparent-table">
-              <Table.Header>
-                <Table.Row>
-                  <Table.HeaderCell>#</Table.HeaderCell>
-                  <Table.HeaderCell>Filename</Table.HeaderCell>
-                  <Table.HeaderCell>Type</Table.HeaderCell>
-                  <Table.HeaderCell>Access</Table.HeaderCell>
-                  <Table.HeaderCell>Status</Table.HeaderCell>
-                  <Table.HeaderCell>Date</Table.HeaderCell>
-                  <Table.HeaderCell>Action</Table.HeaderCell>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body>
-                {documents.map((doc, i) => (
-                  <Table.Row key={doc.id}>
-                    <Table.Cell>{i + 1}</Table.Cell>
-                    <Table.Cell>{doc.filename}</Table.Cell>
-                    <Table.Cell>{doc.doc_type}</Table.Cell>
-                    <Table.Cell>{doc.access_level}</Table.Cell>
-                    <Table.Cell>
-                      <Label
-                        color={STATUS_COLORS[doc.status] || 'grey'}
-                        size="tiny"
-                      >
-                        {doc.status}
-                      </Label>
-                    </Table.Cell>
-                    <Table.Cell>{formatDate(doc.ingested_at)}</Table.Cell>
-                    <Table.Cell>
-                      {(doc.status === 'pending' || doc.status === 'error') && (
-                        <Button
-                          size="tiny"
-                          className="purple-button"
-                          icon="play"
-                          content="Ingest"
-                          labelPosition="left"
-                          loading={ingestingId === doc.id}
-                          disabled={ingestingId !== null}
-                          onClick={() => handleIngest(doc.id)}
-                          style={{ marginRight: '0.4em' }}
-                        />
-                      )}
-                      <Button
-                        negative
-                        size="tiny"
-                        icon="trash"
-                        content="Delete"
-                        onClick={() => handleDelete(doc.id, doc.filename)}
-                      />
-                    </Table.Cell>
+          {documents.length === 0 && !loadError ? (
+            <p style={{ color: '#2C2C2C', fontStyle: 'italic' }}>
+              No documents uploaded yet.
+            </p>
+          ) : (
+            <div className="admin-scroll-area">
+              <Table striped className="transparent-table">
+                <Table.Header>
+                  <Table.Row>
+                    <Table.HeaderCell>#</Table.HeaderCell>
+                    <Table.HeaderCell>Filename</Table.HeaderCell>
+                    <Table.HeaderCell>Type</Table.HeaderCell>
+                    <Table.HeaderCell>Access</Table.HeaderCell>
+                    <Table.HeaderCell>Status</Table.HeaderCell>
+                    <Table.HeaderCell>Date</Table.HeaderCell>
+                    <Table.HeaderCell>Action</Table.HeaderCell>
                   </Table.Row>
-                ))}
-              </Table.Body>
-            </Table>
-          </div>
-        )}
+                </Table.Header>
+                <Table.Body>
+                  {documents.map((doc, i) => (
+                    <Table.Row key={doc.id}>
+                      <Table.Cell>{i + 1}</Table.Cell>
+                      <Table.Cell>{doc.filename}</Table.Cell>
+                      <Table.Cell>{doc.doc_type}</Table.Cell>
+                      <Table.Cell>{doc.access_level}</Table.Cell>
+                      <Table.Cell>
+                        <Label
+                          color={STATUS_COLORS[doc.status] || 'grey'}
+                          size="tiny"
+                        >
+                          {doc.status}
+                        </Label>
+                      </Table.Cell>
+                      <Table.Cell>{formatDate(doc.ingested_at)}</Table.Cell>
+                      <Table.Cell>
+                        {(doc.status === 'pending' || doc.status === 'error') && (
+                          <Button
+                            size="tiny"
+                            className="purple-button"
+                            icon="play"
+                            content="Ingest"
+                            labelPosition="left"
+                            loading={ingestingId === doc.id}
+                            disabled={ingestingId !== null}
+                            onClick={() => handleIngest(doc.id)}
+                            style={{ marginRight: '0.4em' }}
+                          />
+                        )}
+                        <Button
+                          negative
+                          size="tiny"
+                          icon="trash"
+                          content="Delete"
+                          onClick={() => handleDelete(doc.id, doc.filename)}
+                        />
+                      </Table.Cell>
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table>
+            </div>
+          )}
+        </details>
       </Segment>
 
       {/* Chat Feedback Ratings */}
       <Segment style={glassmorphism}>
-        <Header as="h3" style={{ color: '#1A1A1A', marginBottom: '1em' }}>
-          Chat Ratings
-        </Header>
+        <details className="admin-panel" open>
+          <summary className="admin-panel-toggle">
+            Chat Ratings
+            {chatFeedback.length > 0 && (
+              <span className="admin-panel-badges">
+                <Label size="mini">
+                  Total <Label.Detail>{chatFeedback.length}</Label.Detail>
+                </Label>
+                <Label color="green" size="mini">
+                  &#128077; <Label.Detail>{chatFeedback.filter((f) => f.rating === 'up').length}</Label.Detail>
+                </Label>
+                <Label color="red" size="mini">
+                  &#128078; <Label.Detail>{chatFeedback.filter((f) => f.rating === 'down').length}</Label.Detail>
+                </Label>
+              </span>
+            )}
+          </summary>
 
-        {chatFeedback.length > 0 && (
-          <div style={{ marginBottom: '1em', display: 'flex', gap: '1em' }}>
-            <Label size="medium">
-              Total <Label.Detail>{chatFeedback.length}</Label.Detail>
-            </Label>
-            <Label color="green" size="medium">
-              &#128077; <Label.Detail>{chatFeedback.filter((f) => f.rating === 'up').length}</Label.Detail>
-            </Label>
-            <Label color="red" size="medium">
-              &#128078; <Label.Detail>{chatFeedback.filter((f) => f.rating === 'down').length}</Label.Detail>
-            </Label>
-          </div>
-        )}
-
-        {chatFeedback.length === 0 ? (
-          <p style={{ color: '#2C2C2C', fontStyle: 'italic' }}>
-            No chat ratings yet.
-          </p>
-        ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <Table striped className="transparent-table">
-              <Table.Header>
-                <Table.Row>
-                  <Table.HeaderCell>Date</Table.HeaderCell>
-                  <Table.HeaderCell>Rating</Table.HeaderCell>
-                  <Table.HeaderCell>User Question</Table.HeaderCell>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body>
-                {chatFeedback.slice(0, 20).map((fb) => (
-                  <Table.Row key={fb.id}>
-                    <Table.Cell style={{ whiteSpace: 'nowrap' }}>
-                      {formatDate(fb.created_at)}
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Label
-                        color={fb.rating === 'up' ? 'green' : 'red'}
-                        size="tiny"
-                      >
-                        {fb.rating === 'up' ? '\u{1F44D}' : '\u{1F44E}'}
-                      </Label>
-                    </Table.Cell>
-                    <Table.Cell>
-                      {fb.query
-                        ? fb.query.length > 80
-                          ? fb.query.slice(0, 80) + '...'
-                          : fb.query
-                        : '-'}
-                    </Table.Cell>
+          {chatFeedback.length === 0 ? (
+            <p style={{ color: '#2C2C2C', fontStyle: 'italic' }}>
+              No chat ratings yet.
+            </p>
+          ) : (
+            <div className="admin-scroll-area">
+              <Table striped className="transparent-table">
+                <Table.Header>
+                  <Table.Row>
+                    <Table.HeaderCell>Date</Table.HeaderCell>
+                    <Table.HeaderCell>Rating</Table.HeaderCell>
+                    <Table.HeaderCell>User Question</Table.HeaderCell>
                   </Table.Row>
-                ))}
-              </Table.Body>
-            </Table>
-          </div>
-        )}
+                </Table.Header>
+                <Table.Body>
+                  {chatFeedback.slice(0, 50).map((fb) => (
+                    <Table.Row key={fb.id}>
+                      <Table.Cell style={{ whiteSpace: 'nowrap' }}>
+                        {formatDate(fb.created_at)}
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Label
+                          color={fb.rating === 'up' ? 'green' : 'red'}
+                          size="tiny"
+                        >
+                          {fb.rating === 'up' ? '\u{1F44D}' : '\u{1F44E}'}
+                        </Label>
+                      </Table.Cell>
+                      <Table.Cell>
+                        {fb.query
+                          ? fb.query.length > 80
+                            ? fb.query.slice(0, 80) + '...'
+                            : fb.query
+                          : '-'}
+                      </Table.Cell>
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table>
+            </div>
+          )}
+        </details>
       </Segment>
 
       {/* General Feedback Comments */}
       <Segment style={glassmorphism}>
-        <Header as="h3" style={{ color: '#1A1A1A', marginBottom: '1em' }}>
-          General Comments
-        </Header>
+        <details className="admin-panel" open>
+          <summary className="admin-panel-toggle">
+            General Comments ({generalFeedback.length})
+          </summary>
 
-        {generalFeedback.length === 0 ? (
-          <p style={{ color: '#2C2C2C', fontStyle: 'italic' }}>
-            No general feedback yet.
-          </p>
-        ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <Table striped className="transparent-table">
-              <Table.Header>
-                <Table.Row>
-                  <Table.HeaderCell>Date</Table.HeaderCell>
-                  <Table.HeaderCell>Category</Table.HeaderCell>
-                  <Table.HeaderCell>Comment</Table.HeaderCell>
-                </Table.Row>
-              </Table.Header>
-              <Table.Body>
-                {generalFeedback.slice(0, 20).map((fb) => (
-                  <Table.Row key={fb.id}>
-                    <Table.Cell style={{ whiteSpace: 'nowrap' }}>
-                      {formatDate(fb.created_at)}
-                    </Table.Cell>
-                    <Table.Cell>
-                      <Label size="tiny">{fb.category}</Label>
-                    </Table.Cell>
-                    <Table.Cell>{fb.comment}</Table.Cell>
+          {generalFeedback.length === 0 ? (
+            <p style={{ color: '#2C2C2C', fontStyle: 'italic' }}>
+              No general feedback yet.
+            </p>
+          ) : (
+            <div className="admin-scroll-area">
+              <Table striped className="transparent-table">
+                <Table.Header>
+                  <Table.Row>
+                    <Table.HeaderCell>Date</Table.HeaderCell>
+                    <Table.HeaderCell>Category</Table.HeaderCell>
+                    <Table.HeaderCell>Comment</Table.HeaderCell>
                   </Table.Row>
-                ))}
-              </Table.Body>
-            </Table>
-          </div>
-        )}
+                </Table.Header>
+                <Table.Body>
+                  {generalFeedback.slice(0, 50).map((fb) => (
+                    <Table.Row key={fb.id}>
+                      <Table.Cell style={{ whiteSpace: 'nowrap' }}>
+                        {formatDate(fb.created_at)}
+                      </Table.Cell>
+                      <Table.Cell>
+                        <Label size="tiny">{fb.category}</Label>
+                      </Table.Cell>
+                      <Table.Cell>{fb.comment}</Table.Cell>
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table>
+            </div>
+          )}
+        </details>
       </Segment>
     </Container>
   );
