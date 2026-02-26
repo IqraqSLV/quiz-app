@@ -222,14 +222,35 @@
 /* Sources panel */
 .chat-sources-panel {
   margin-top: 0.5em;
-  padding-top: 0.5em;
   border-top: 1px solid rgba(123, 67, 151, 0.12);
+  border-radius: 8px;
+  overflow: hidden;
 }
-.chat-sources-label {
+.chat-sources-toggle {
+  cursor: pointer;
+  padding: 0.4em 0.75em;
   font-size: 0.78em;
   font-weight: 600;
   color: #7B4397;
-  margin-bottom: 0.3em;
+  background: rgba(123, 67, 151, 0.04);
+  list-style: none;
+}
+.chat-sources-toggle::-webkit-details-marker {
+  display: none;
+}
+.chat-sources-toggle::before {
+  content: '\25B6';
+  display: inline-block;
+  margin-right: 0.4em;
+  font-size: 0.7em;
+  transition: transform 0.15s ease;
+}
+.chat-sources-panel[open] > .chat-sources-toggle::before {
+  transform: rotate(90deg);
+}
+.chat-sources-panel[open] .chat-source-card {
+  padding-left: 0.75em;
+  padding-right: 0.75em;
 }
 .chat-source-card {
   padding: 0.35em 0;

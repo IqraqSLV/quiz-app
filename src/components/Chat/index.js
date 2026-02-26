@@ -210,8 +210,8 @@ const Chat = () => {
                     </div>
 
                     {msg.details && msg.details !== msg.summary && (
-                      <details className="chat-details">
-                        <summary className="chat-details-toggle">Show full answer</summary>
+                      <details className="chat-details" open>
+                        <summary className="chat-details-toggle">Full answer</summary>
                         <div className="chat-details-body">
                           {msg.details.split('\n').filter(Boolean).map((para, pi) => (
                             <p key={pi}>{para}</p>
@@ -221,8 +221,8 @@ const Chat = () => {
                     )}
 
                     {msg.sources && msg.sources.length > 0 && (
-                      <div className="chat-sources-panel">
-                        <div className="chat-sources-label">Sources ({msg.sources.length})</div>
+                      <details className="chat-sources-panel">
+                        <summary className="chat-sources-toggle">Sources ({msg.sources.length})</summary>
                         {msg.sources.slice(0, expandedSources[i] ? undefined : 2).map((src, si) => (
                           <div key={si} className="chat-source-card">
                             <span className="chat-source-filename">{src.filename}</span>
@@ -238,7 +238,7 @@ const Chat = () => {
                             Show {msg.sources.length - 2} more
                           </button>
                         )}
-                      </div>
+                      </details>
                     )}
 
                     {msg.followups && msg.followups.length > 0 && (
