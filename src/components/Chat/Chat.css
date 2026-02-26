@@ -160,6 +160,25 @@
   line-height: 1.55;
   margin-bottom: 0.5em;
 }
+.chat-summary p {
+  margin: 0.35em 0;
+}
+.chat-summary p:first-child {
+  margin-top: 0;
+}
+.chat-bullet-list {
+  margin: 0.4em 0 0.4em 0.2em;
+  padding-left: 1.2em;
+  list-style: disc;
+}
+.chat-bullet-list li {
+  margin-bottom: 0.25em;
+  line-height: 1.45;
+}
+.chat-summary strong {
+  font-weight: 600;
+  color: #4a2563;
+}
 
 /* Confidence badge */
 .confidence-badge {
@@ -457,9 +476,9 @@
 
 /* Trigger button */
 .feedback-widget-btn {
-  position: absolute;
-  bottom: 128px;
-  right: 16px;
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
   width: 44px;
   height: 44px;
   border-radius: 50%;
@@ -483,9 +502,9 @@
 
 /* Panel */
 .feedback-widget-panel {
-  position: absolute;
-  bottom: 184px;
-  right: 16px;
+  position: fixed;
+  bottom: 84px;
+  right: 28px;
   width: 260px;
   background: #fff;
   border: 1px solid rgba(123, 67, 151, 0.25);

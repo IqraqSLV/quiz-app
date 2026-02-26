@@ -6,6 +6,54 @@ import './Chat.css';
 
 const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
 
+/** Render a text string that may contain \n, "- " bullets, and **bold** markers. */
+function FormattedText({ text }) {
+  if (!text) return null;
+  const lines = text.split('\n').filter((l) => l.trim() !== '');
+
+  // Group consecutive "- " lines into a <ul>
+  const elements = [];
+  let bulletBuffer = [];
+
+  const flushBullets = () => {
+    if (bulletBuffer.length === 0) return;
+    elements.push(
+      <ul key={`ul-${elements.length}`} className="chat-bullet-list">
+        {bulletBuffer.map((b, i) => (
+          <li key={i}><BoldText text={b} /></li>
+        ))}
+      </ul>
+    );
+    bulletBuffer = [];
+  };
+
+  for (const line of lines) {
+    if (line.trimStart().startsWith('- ')) {
+      bulletBuffer.push(line.trimStart().slice(2));
+    } else {
+      flushBullets();
+      elements.push(<p key={`p-${elements.length}`}><BoldText text={line} /></p>);
+    }
+  }
+  flushBullets();
+
+  return <>{elements}</>;
+}
+
+/** Render **bold** markers within a line of text. */
+function BoldText({ text }) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.startsWith('**') && part.endsWith('**')
+          ? <strong key={i}>{part.slice(2, -2)}</strong>
+          : part
+      )}
+    </>
+  );
+}
+
 const INITIAL_MESSAGE = {
   role: 'assistant',
   content: 'Hi! Ask me anything about leave, benefits, or company policy.',
@@ -211,6 +259,7 @@ const Chat = () => {
   };
 
   return (
+    <>
     <Container className="quiz-container page-container">
       <Segment
         style={{
@@ -245,7 +294,7 @@ const Chat = () => {
                 {msg.summary ? (
                   <>
                     <div className="chat-summary">
-                      {msg.summary}
+                      <FormattedText text={msg.summary} />
                       {msg.meta?.confidence && (
                         <span className={`confidence-badge confidence-${msg.meta.confidence}`}>
                           {msg.meta.confidence}
@@ -363,59 +412,6 @@ const Chat = () => {
           </button>
         )}
 
-        {/* Floating feedback widget */}
-        {showFeedbackWidget && (
-          <div className="feedback-widget-panel" role="dialog" aria-label="Quick feedback">
-            <div className="feedback-widget-header">
-              <span>Quick Feedback</span>
-              <button
-                className="feedback-widget-close"
-                onClick={() => setShowFeedbackWidget(false)}
-                aria-label="Close feedback"
-              >
-                ✕
-              </button>
-            </div>
-            <select
-              className="feedback-widget-select"
-              value={widgetCategory}
-              onChange={(e) => setWidgetCategory(e.target.value)}
-              disabled={widgetStatus === 'submitting' || widgetStatus === 'success'}
-            >
-              <option value="general">General</option>
-              <option value="ui">UI Improvement</option>
-              <option value="content">Content Quality</option>
-              <option value="bug">Bug Report</option>
-            </select>
-            <textarea
-              className="feedback-widget-textarea"
-              placeholder="Anything else? (optional)"
-              value={widgetComment}
-              onChange={(e) => setWidgetComment(e.target.value)}
-              rows={8}
-              disabled={widgetStatus === 'submitting' || widgetStatus === 'success'}
-            />
-            <button
-              className="feedback-widget-submit"
-              onClick={handleWidgetSubmit}
-              disabled={widgetStatus === 'submitting' || widgetStatus === 'success'}
-            >
-              {widgetStatus === 'submitting' ? 'Sending…' : widgetStatus === 'success' ? '✓ Thanks!' : 'Submit'}
-            </button>
-            {widgetStatus === 'error' && (
-              <p className="feedback-widget-error">Couldn't send — try again</p>
-            )}
-          </div>
-        )}
-        <button
-          className="feedback-widget-btn"
-          onClick={() => { setShowFeedbackWidget(prev => !prev); setWidgetStatus('idle'); }}
-          aria-label="Give feedback about this tool"
-          title="Feedback"
-        >
-          💬
-        </button>
-
         {/* Suggestion cards — shown only on quiz_result entry before first message */}
         {showCards && (
           <div className="suggestion-cards">
@@ -474,6 +470,60 @@ const Chat = () => {
         </div>
       </Segment>
     </Container>
+
+    {/* Floating feedback widget — fixed to viewport bottom-right */}
+    {showFeedbackWidget && (
+      <div className="feedback-widget-panel" role="dialog" aria-label="Quick feedback">
+        <div className="feedback-widget-header">
+          <span>Quick Feedback</span>
+          <button
+            className="feedback-widget-close"
+            onClick={() => setShowFeedbackWidget(false)}
+            aria-label="Close feedback"
+          >
+            ✕
+          </button>
+        </div>
+        <select
+          className="feedback-widget-select"
+          value={widgetCategory}
+          onChange={(e) => setWidgetCategory(e.target.value)}
+          disabled={widgetStatus === 'submitting' || widgetStatus === 'success'}
+        >
+          <option value="general">General</option>
+          <option value="ui">UI Improvement</option>
+          <option value="content">Content Quality</option>
+          <option value="bug">Bug Report</option>
+        </select>
+        <textarea
+          className="feedback-widget-textarea"
+          placeholder="Anything else? (optional)"
+          value={widgetComment}
+          onChange={(e) => setWidgetComment(e.target.value)}
+          rows={8}
+          disabled={widgetStatus === 'submitting' || widgetStatus === 'success'}
+        />
+        <button
+          className="feedback-widget-submit"
+          onClick={handleWidgetSubmit}
+          disabled={widgetStatus === 'submitting' || widgetStatus === 'success'}
+        >
+          {widgetStatus === 'submitting' ? 'Sending…' : widgetStatus === 'success' ? '✓ Thanks!' : 'Submit'}
+        </button>
+        {widgetStatus === 'error' && (
+          <p className="feedback-widget-error">Couldn't send — try again</p>
+        )}
+      </div>
+    )}
+    <button
+      className="feedback-widget-btn"
+      onClick={() => { setShowFeedbackWidget(prev => !prev); setWidgetStatus('idle'); }}
+      aria-label="Give feedback about this tool"
+      title="Feedback"
+    >
+      💬
+    </button>
+    </>
   );
 };
 
