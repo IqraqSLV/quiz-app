@@ -37,7 +37,10 @@ const Chat = () => {
   const [loading, setLoading] = useState(false);
   const [ratedMessages, setRatedMessages] = useState(new Set());
   const [expandedSources, setExpandedSources] = useState({});
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
   const bottomRef = useRef(null);
+  const textareaRef = useRef(null);
+  const scrollRef = useRef(null);
 
   const state = location.state || {};
   const isQuizEntry = state.entrypoint === 'quiz_result';
@@ -64,12 +67,32 @@ const Chat = () => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
+  // Auto-resize textarea
+  const autoResize = () => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 150) + 'px';
+  };
+
+  // Scroll indicator
+  const handleScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+    setShowScrollBtn(!atBottom);
+  };
+
   const sendMessage = async (overrideText) => {
     const text = (typeof overrideText === 'string' ? overrideText : input).trim();
     if (!text || loading) return;
 
     setMessages(prev => [...prev, { role: 'user', content: text }]);
     setInput('');
+    // Reset textarea height after clear
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
     setLoading(true);
 
     let assistantMsg = { role: 'assistant' };
@@ -90,6 +113,7 @@ const Chat = () => {
     } catch (err) {
       assistantMsg.content = 'Sorry, I could not reach the HR Helpdesk service. Please try again.';
       assistantMsg.summary = '';
+      assistantMsg.failedQuery = text;
     }
     setMessages(prev => [...prev, assistantMsg]);
     setLoading(false);
@@ -110,6 +134,14 @@ const Chat = () => {
 
   const handleFeedback = async (msgIndex, rating) => {
     setRatedMessages((prev) => new Set(prev).add(msgIndex));
+    // Auto-hide "Thanks" after 3 seconds
+    setTimeout(() => {
+      setRatedMessages((prev) => {
+        const s = new Set(prev);
+        s.delete(msgIndex);
+        return s;
+      });
+    }, 3000);
     const userMsg = messages[msgIndex - 1];
     const assistantMsg = messages[msgIndex];
     try {
@@ -137,6 +169,7 @@ const Chat = () => {
           backdropFilter: 'blur(10px)',
           boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
           border: '1px solid rgba(34, 36, 38, 0.1)',
+          position: 'relative',
         }}
       >
         <Header as="h2" style={{ color: '#1A1A1A', marginBottom: '0.25em' }}>
@@ -147,7 +180,15 @@ const Chat = () => {
         </p>
 
         {/* Message scroll area */}
-        <div className="chat-scroll-area">
+        <div
+          className="chat-scroll-area"
+          ref={scrollRef}
+          onScroll={handleScroll}
+          role="log"
+          aria-live="polite"
+          aria-label="Chat messages"
+          aria-busy={loading}
+        >
           {messages.map((msg, i) => (
             <div key={i} className={`chat-bubble-wrap ${msg.role}`}>
               <div className={`chat-bubble ${msg.role}`}>
@@ -206,7 +247,17 @@ const Chat = () => {
                     )}
                   </>
                 ) : (
-                  msg.content
+                  <>
+                    {msg.content}
+                    {/* Retry button for failed requests */}
+                    {msg.failedQuery && (
+                      <div style={{ marginTop: '0.5em' }}>
+                        <button className="followup-chip" onClick={() => sendMessage(msg.failedQuery)}>
+                          Retry
+                        </button>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {msg.role === 'assistant' && i > 0 && (
@@ -215,11 +266,19 @@ const Chat = () => {
                       <span className="chat-feedback-thanks">Thanks for your feedback!</span>
                     ) : (
                       <>
-                        <button className="feedback-btn up" onClick={() => handleFeedback(i, 'up')} title="Helpful">
-                          &#128077;
+                        <button
+                          className="feedback-btn up"
+                          onClick={() => handleFeedback(i, 'up')}
+                          aria-label="This response was helpful"
+                        >
+                          &#128077; Helpful
                         </button>
-                        <button className="feedback-btn down" onClick={() => handleFeedback(i, 'down')} title="Not helpful">
-                          &#128078;
+                        <button
+                          className="feedback-btn down"
+                          onClick={() => handleFeedback(i, 'down')}
+                          aria-label="This response was not helpful"
+                        >
+                          &#128078; Not helpful
                         </button>
                       </>
                     )}
@@ -232,7 +291,7 @@ const Chat = () => {
           {loading && (
             <div className="chat-bubble-wrap assistant">
               <div className="chat-bubble assistant">
-                <div className="typing-indicator">
+                <div className="typing-indicator" role="status">
                   <span />
                   <span />
                   <span />
@@ -243,6 +302,17 @@ const Chat = () => {
 
           <div ref={bottomRef} />
         </div>
+
+        {/* Scroll-to-bottom floating button */}
+        {showScrollBtn && (
+          <button
+            className="scroll-to-bottom"
+            onClick={() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' })}
+            aria-label="Scroll to bottom"
+          >
+            ↓
+          </button>
+        )}
 
         {/* Suggestion cards — shown only on quiz_result entry before first message */}
         {showCards && (
@@ -273,15 +343,24 @@ const Chat = () => {
 
         {/* Input bar */}
         <div className="chat-input-bar">
-          <textarea
-            className="chat-textarea"
-            placeholder="Type your question... (Enter to send, Shift+Enter for new line)"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={loading}
-            rows={3}
-          />
+          <div className="chat-textarea-wrap">
+            <textarea
+              ref={textareaRef}
+              className="chat-textarea"
+              placeholder="Type your question... (Enter to send, Shift+Enter for new line)"
+              value={input}
+              onChange={(e) => { setInput(e.target.value); autoResize(); }}
+              onKeyDown={handleKeyDown}
+              disabled={loading}
+              rows={1}
+              maxLength={2000}
+            />
+            {input.length > 1500 && (
+              <span className={`chat-char-count${input.length > 1900 ? ' over-limit' : ''}`}>
+                {input.length} / 2000
+              </span>
+            )}
+          </div>
           <Button
             className="purple-button"
             onClick={() => sendMessage()}
