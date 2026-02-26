@@ -63,6 +63,11 @@ const Chat = () => {
     }));
   }, []);
 
+  // Snap textarea to correct height on mount (eliminates browser default row padding)
+  useEffect(() => {
+    autoResize();
+  }, []);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
