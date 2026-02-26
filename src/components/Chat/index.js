@@ -36,6 +36,7 @@ const Chat = () => {
   const [input, setInput] = useState(location.state?.prefill || '');
   const [loading, setLoading] = useState(false);
   const [ratedMessages, setRatedMessages] = useState(new Set());
+  const [expandedSources, setExpandedSources] = useState({});
   const bottomRef = useRef(null);
 
   const state = location.state || {};
@@ -64,15 +65,14 @@ const Chat = () => {
   }, [messages, loading]);
 
   const sendMessage = async (overrideText) => {
-    const text = (overrideText !== undefined ? overrideText : input).trim();
+    const text = (typeof overrideText === 'string' ? overrideText : input).trim();
     if (!text || loading) return;
 
     setMessages(prev => [...prev, { role: 'user', content: text }]);
     setInput('');
     setLoading(true);
 
-    let assistantContent = '';
-    let newSources = [];
+    let assistantMsg = { role: 'assistant' };
     try {
       const res = await fetch(`${API_BASE}/chat`, {
         method: 'POST',
@@ -81,15 +81,17 @@ const Chat = () => {
       });
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
       const data = await res.json();
-      assistantContent = data.answer || '(No answer returned)';
-      newSources = data.sources || [];
+      assistantMsg.summary = data.summary || data.answer || '(No answer returned)';
+      assistantMsg.details = data.details || '';
+      assistantMsg.followups = data.followups || [];
+      assistantMsg.sources = data.sources || [];
+      assistantMsg.meta = data.meta || {};
+      assistantMsg.content = assistantMsg.summary; // backward compat for feedback
     } catch (err) {
-      assistantContent = 'Sorry, I could not reach the HR Helpdesk service. Please try again.';
+      assistantMsg.content = 'Sorry, I could not reach the HR Helpdesk service. Please try again.';
+      assistantMsg.summary = '';
     }
-    setMessages(prev => [
-      ...prev,
-      { role: 'assistant', content: assistantContent, sources: newSources },
-    ]);
+    setMessages(prev => [...prev, assistantMsg]);
     setLoading(false);
   };
 
@@ -149,18 +151,64 @@ const Chat = () => {
           {messages.map((msg, i) => (
             <div key={i} className={`chat-bubble-wrap ${msg.role}`}>
               <div className={`chat-bubble ${msg.role}`}>
-                {msg.content}
-                {msg.sources && msg.sources.length > 0 && (
-                  <div className="chat-sources">
-                    <strong>Sources:</strong>
-                    {msg.sources.map((src, si) => (
-                      <div key={si} className="chat-source-item">
-                        <span className="chat-source-filename">{src.filename}</span>
-                        <span className="chat-source-snippet">{src.snippet}</span>
+                {/* Structured rendering for assistant messages */}
+                {msg.summary ? (
+                  <>
+                    <div className="chat-summary">
+                      {msg.summary}
+                      {msg.meta?.confidence && (
+                        <span className={`confidence-badge confidence-${msg.meta.confidence}`}>
+                          {msg.meta.confidence}
+                        </span>
+                      )}
+                    </div>
+
+                    {msg.details && msg.details !== msg.summary && (
+                      <details className="chat-details">
+                        <summary className="chat-details-toggle">Show full answer</summary>
+                        <div className="chat-details-body">
+                          {msg.details.split('\n').filter(Boolean).map((para, pi) => (
+                            <p key={pi}>{para}</p>
+                          ))}
+                        </div>
+                      </details>
+                    )}
+
+                    {msg.sources && msg.sources.length > 0 && (
+                      <div className="chat-sources-panel">
+                        <div className="chat-sources-label">Sources ({msg.sources.length})</div>
+                        {msg.sources.slice(0, expandedSources[i] ? undefined : 2).map((src, si) => (
+                          <div key={si} className="chat-source-card">
+                            <span className="chat-source-filename">{src.filename}</span>
+                            {src.page_number && <span className="chat-source-page">p.{src.page_number}</span>}
+                            <span className="chat-source-snippet">{src.snippet}</span>
+                          </div>
+                        ))}
+                        {msg.sources.length > 2 && !expandedSources[i] && (
+                          <button
+                            className="chat-sources-more"
+                            onClick={() => setExpandedSources(prev => ({ ...prev, [i]: true }))}
+                          >
+                            Show {msg.sources.length - 2} more
+                          </button>
+                        )}
                       </div>
-                    ))}
-                  </div>
+                    )}
+
+                    {msg.followups && msg.followups.length > 0 && (
+                      <div className="chat-followup-chips">
+                        {msg.followups.map((fq, fi) => (
+                          <button key={fi} className="followup-chip" onClick={() => handleCardClick(fq)}>
+                            {fq}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  msg.content
                 )}
+
                 {msg.role === 'assistant' && i > 0 && (
                   <div className="chat-feedback">
                     {ratedMessages.has(i) ? (
@@ -236,7 +284,7 @@ const Chat = () => {
           />
           <Button
             className="purple-button"
-            onClick={sendMessage}
+            onClick={() => sendMessage()}
             disabled={loading || !input.trim()}
             icon="send"
             content="Send"
