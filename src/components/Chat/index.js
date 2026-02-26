@@ -392,7 +392,7 @@ const Chat = () => {
               placeholder="Anything else? (optional)"
               value={widgetComment}
               onChange={(e) => setWidgetComment(e.target.value)}
-              rows={3}
+              rows={5}
               disabled={widgetStatus === 'submitting' || widgetStatus === 'success'}
             />
             <button
