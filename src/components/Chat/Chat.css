@@ -452,3 +452,156 @@
 .scroll-to-bottom:hover {
   background: #6a3580;
 }
+
+/* ── Floating feedback widget (P3-24) ── */
+
+/* Trigger button */
+.feedback-widget-btn {
+  position: absolute;
+  bottom: 128px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #7B4397;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, transform 0.15s ease;
+  z-index: 20;
+}
+
+.feedback-widget-btn:hover {
+  background: #6a3580;
+  transform: scale(1.08);
+}
+
+/* Panel */
+.feedback-widget-panel {
+  position: absolute;
+  bottom: 184px;
+  right: 16px;
+  width: 260px;
+  background: #fff;
+  border: 1px solid rgba(123, 67, 151, 0.25);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  padding: 0.85em 1em 1em;
+  z-index: 30;
+  animation: widgetSlideIn 0.18s ease;
+}
+
+@keyframes widgetSlideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Panel header */
+.feedback-widget-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.65em;
+}
+
+.feedback-widget-header span {
+  font-size: 0.88em;
+  font-weight: 700;
+  color: #7B4397;
+}
+
+.feedback-widget-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85em;
+  color: #888;
+  line-height: 1;
+  padding: 0.1em 0.3em;
+  border-radius: 4px;
+  transition: color 0.1s ease, background 0.1s ease;
+}
+
+.feedback-widget-close:hover {
+  color: #333;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* Category select */
+.feedback-widget-select {
+  width: 100%;
+  padding: 0.45em 0.65em;
+  border: 1px solid rgba(34, 36, 38, 0.18);
+  border-radius: 6px;
+  font-size: 0.85em;
+  font-family: inherit;
+  color: #2C2C2C;
+  background: #fafafa;
+  outline: none;
+  margin-bottom: 0.5em;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.feedback-widget-select:focus {
+  border-color: #7B4397;
+  box-shadow: 0 0 0 2px rgba(123, 67, 151, 0.1);
+}
+
+/* Comment textarea */
+.feedback-widget-textarea {
+  width: 100%;
+  padding: 0.45em 0.65em;
+  border: 1px solid rgba(34, 36, 38, 0.18);
+  border-radius: 6px;
+  font-size: 0.85em;
+  font-family: inherit;
+  color: #2C2C2C;
+  background: #fafafa;
+  outline: none;
+  resize: none;
+  margin-bottom: 0.65em;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.feedback-widget-textarea:focus {
+  border-color: #7B4397;
+  box-shadow: 0 0 0 2px rgba(123, 67, 151, 0.1);
+}
+
+/* Submit button */
+.feedback-widget-submit {
+  width: 100%;
+  padding: 0.5em;
+  background: #7B4397;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.88em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.feedback-widget-submit:hover:not(:disabled) {
+  background: #6a3580;
+}
+
+.feedback-widget-submit:disabled {
+  background: #b08fc0;
+  cursor: default;
+}
+
+/* Error message */
+.feedback-widget-error {
+  font-size: 0.78em;
+  color: #c0392b;
+  margin: 0.4em 0 0;
+  text-align: center;
+}

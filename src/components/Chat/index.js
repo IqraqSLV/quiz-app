@@ -38,6 +38,10 @@ const Chat = () => {
   const [ratedMessages, setRatedMessages] = useState(new Set());
   const [expandedSources, setExpandedSources] = useState({});
   const [showScrollBtn, setShowScrollBtn] = useState(false);
+  const [showFeedbackWidget, setShowFeedbackWidget] = useState(false);
+  const [widgetCategory, setWidgetCategory] = useState('general');
+  const [widgetComment, setWidgetComment] = useState('');
+  const [widgetStatus, setWidgetStatus] = useState('idle'); // idle | submitting | success | error
   const bottomRef = useRef(null);
   const textareaRef = useRef(null);
   const scrollRef = useRef(null);
@@ -138,6 +142,43 @@ const Chat = () => {
     if (loading) return;
     setInput(prompt);
     sendMessage(prompt);
+  };
+
+  const WIDGET_CATEGORY_LABELS = {
+    general: 'General',
+    ui: 'UI Improvement',
+    content: 'Content Quality',
+    bug: 'Bug Report',
+  };
+
+  // Close feedback widget on Escape
+  useEffect(() => {
+    if (!showFeedbackWidget) return;
+    const onKey = (e) => { if (e.key === 'Escape') setShowFeedbackWidget(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [showFeedbackWidget]);
+
+  const handleWidgetSubmit = async () => {
+    setWidgetStatus('submitting');
+    const comment = widgetComment.trim() || `${WIDGET_CATEGORY_LABELS[widgetCategory]} feedback`;
+    try {
+      const res = await fetch(`${API_BASE}/feedback/general`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category: widgetCategory, comment }),
+      });
+      if (!res.ok) throw new Error();
+      setWidgetStatus('success');
+      setTimeout(() => {
+        setShowFeedbackWidget(false);
+        setWidgetStatus('idle');
+        setWidgetCategory('general');
+        setWidgetComment('');
+      }, 2000);
+    } catch {
+      setWidgetStatus('error');
+    }
   };
 
   const handleFeedback = async (msgIndex, rating) => {
@@ -321,6 +362,59 @@ const Chat = () => {
             ↓
           </button>
         )}
+
+        {/* Floating feedback widget */}
+        {showFeedbackWidget && (
+          <div className="feedback-widget-panel" role="dialog" aria-label="Quick feedback">
+            <div className="feedback-widget-header">
+              <span>Quick Feedback</span>
+              <button
+                className="feedback-widget-close"
+                onClick={() => setShowFeedbackWidget(false)}
+                aria-label="Close feedback"
+              >
+                ✕
+              </button>
+            </div>
+            <select
+              className="feedback-widget-select"
+              value={widgetCategory}
+              onChange={(e) => setWidgetCategory(e.target.value)}
+              disabled={widgetStatus === 'submitting' || widgetStatus === 'success'}
+            >
+              <option value="general">General</option>
+              <option value="ui">UI Improvement</option>
+              <option value="content">Content Quality</option>
+              <option value="bug">Bug Report</option>
+            </select>
+            <textarea
+              className="feedback-widget-textarea"
+              placeholder="Anything else? (optional)"
+              value={widgetComment}
+              onChange={(e) => setWidgetComment(e.target.value)}
+              rows={3}
+              disabled={widgetStatus === 'submitting' || widgetStatus === 'success'}
+            />
+            <button
+              className="feedback-widget-submit"
+              onClick={handleWidgetSubmit}
+              disabled={widgetStatus === 'submitting' || widgetStatus === 'success'}
+            >
+              {widgetStatus === 'submitting' ? 'Sending…' : widgetStatus === 'success' ? '✓ Thanks!' : 'Submit'}
+            </button>
+            {widgetStatus === 'error' && (
+              <p className="feedback-widget-error">Couldn't send — try again</p>
+            )}
+          </div>
+        )}
+        <button
+          className="feedback-widget-btn"
+          onClick={() => { setShowFeedbackWidget(prev => !prev); setWidgetStatus('idle'); }}
+          aria-label="Give feedback about this tool"
+          title="Feedback"
+        >
+          💬
+        </button>
 
         {/* Suggestion cards — shown only on quiz_result entry before first message */}
         {showCards && (
