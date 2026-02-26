@@ -41,6 +41,7 @@ const Chat = () => {
   const bottomRef = useRef(null);
   const textareaRef = useRef(null);
   const scrollRef = useRef(null);
+  const sendingRef = useRef(false);
 
   const state = location.state || {};
   const isQuizEntry = state.entrypoint === 'quiz_result';
@@ -90,7 +91,8 @@ const Chat = () => {
 
   const sendMessage = async (overrideText) => {
     const text = (typeof overrideText === 'string' ? overrideText : input).trim();
-    if (!text || loading) return;
+    if (!text || loading || sendingRef.current) return;
+    sendingRef.current = true;
 
     setMessages(prev => [...prev, { role: 'user', content: text }]);
     setInput('');
@@ -122,6 +124,7 @@ const Chat = () => {
     }
     setMessages(prev => [...prev, assistantMsg]);
     setLoading(false);
+    sendingRef.current = false;
   };
 
   const handleKeyDown = (e) => {
