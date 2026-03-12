@@ -25,6 +25,15 @@ body {
 
 #root {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#root > * > main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 /* Improved color contrast for accessibility */
@@ -310,6 +319,13 @@ textarea:focus {
   position: sticky !important;
   top: 0 !important;
   z-index: 20 !important;
+}
+
+/* Prevent Semantic UI from distorting the header logo */
+.site-header .item img {
+  height: 32px !important;
+  width: auto !important;
+  object-fit: contain !important;
 }
 
 .header-nav-links {

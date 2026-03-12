@@ -6,8 +6,10 @@
 .chat-page {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 56px); /* subtract header */
+  flex: 1;
+  min-height: 0;
   max-width: 760px;
+  width: 100%;
   margin: 0 auto;
   padding: 0 12px 12px;
   box-sizing: border-box;
@@ -828,8 +830,7 @@
    ════════════════════════════ */
 @media only screen and (max-width: 480px) {
   .chat-page {
-    padding: 0 0 0;
-    height: calc(100vh - 56px);
+    padding: 0;
   }
 
   .chat-card {
