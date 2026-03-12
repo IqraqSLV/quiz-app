@@ -124,9 +124,19 @@ function SendIcon() {
   );
 }
 
+function AssistantIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" width="20" height="20">
+      <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" fill="#7B4397" opacity="0.15"/>
+      <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" stroke="#7B4397" strokeWidth="1.5" strokeLinejoin="round"/>
+      <path d="M9 12l2 2 4-4" stroke="#7B4397" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
 const INITIAL_MESSAGE = {
   role: 'assistant',
-  content: 'Hi! Ask me anything about leave, benefits, or company policy.',
+  content: 'Welcome to the Solarvest HR Policy Assistant. I can help you with leave entitlements, medical benefits, claims, working hours, and other company policies. Your questions are confidential and answers are sourced directly from official Solarvest HR documents.',
 };
 
 const TOPIC_PROMPTS = {
@@ -150,6 +160,7 @@ const GENERIC_LABEL  = 'Review HR Policies';
 
 const Chat = () => {
   const location = useLocation();
+  const [sessionId] = useState(() => crypto.randomUUID());
   const [messages, setMessages] = useState([INITIAL_MESSAGE]);
   const [input, setInput] = useState(location.state?.prefill || '');
   const [loading, setLoading] = useState(false);
@@ -177,6 +188,11 @@ const Chat = () => {
     }
   }
   const showCards = isQuizEntry && messages.length === 1;
+
+  useEffect(() => {
+    document.body.classList.add('chat-route');
+    return () => document.body.classList.remove('chat-route');
+  }, []);
 
   useEffect(() => {
     document.title = 'Solarvest HR Chat';
@@ -223,7 +239,7 @@ const Chat = () => {
       const res = await fetch(`${API_BASE}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: text, session_id: null, access_level: 'all' }),
+        body: JSON.stringify({ query: text, session_id: sessionId, access_level: 'all' }),
       });
       if (!res.ok) throw new Error(`Server error: ${res.status}`);
       const data = await res.json();
@@ -307,7 +323,7 @@ const Chat = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          session_id: 'anonymous',
+          session_id: sessionId,
           message_idx: msgIndex,
           rating,
           query: userMsg?.content || '',
@@ -326,12 +342,12 @@ const Chat = () => {
 
         {/* ── Header bar ── */}
         <div className="chat-card-header">
-          <div className="chat-avatar" aria-hidden="true">🤖</div>
+          <div className="chat-avatar" aria-hidden="true"><AssistantIcon /></div>
           <div className="chat-header-info">
-            <p className="chat-header-title">HR Helpdesk</p>
+            <p className="chat-header-title">HR Policy Assistant</p>
             <p className="chat-header-subtitle">
               <span className="chat-status-dot" />
-              Online · Ask me anything
+              Sourced from official Solarvest HR policies
             </p>
           </div>
         </div>
@@ -349,7 +365,7 @@ const Chat = () => {
           {messages.map((msg, i) => (
             <div key={i} className={`chat-bubble-wrap ${msg.role}`}>
               {msg.role === 'assistant' && (
-                <div className="bubble-avatar" aria-hidden="true">🤖</div>
+                <div className="bubble-avatar" aria-hidden="true"><AssistantIcon /></div>
               )}
               <div className={`chat-bubble ${msg.role}`}>
                 {msg.summary ? (
@@ -375,9 +391,9 @@ const Chat = () => {
                     )}
 
                     {msg.sources && msg.sources.length > 0 && (
-                      <details className="chat-sources-panel">
-                        <summary className="chat-sources-toggle">Sources ({msg.sources.length})</summary>
-                        {msg.sources.slice(0, expandedSources[i] ? undefined : 2).map((src, si) => (
+                      <div className="chat-sources-panel chat-sources-visible">
+                        <div className="chat-sources-heading">Sources ({msg.sources.length})</div>
+                        {msg.sources.slice(0, expandedSources[i] ? undefined : 3).map((src, si) => (
                           <div key={si} className="chat-source-card">
                             <button
                               className="chat-source-filename chat-source-link"
@@ -393,15 +409,15 @@ const Chat = () => {
                             <span className="chat-source-snippet">{src.snippet}</span>
                           </div>
                         ))}
-                        {msg.sources.length > 2 && !expandedSources[i] && (
+                        {msg.sources.length > 3 && !expandedSources[i] && (
                           <button
                             className="chat-sources-more"
                             onClick={() => setExpandedSources(prev => ({ ...prev, [i]: true }))}
                           >
-                            Show {msg.sources.length - 2} more
+                            Show {msg.sources.length - 3} more
                           </button>
                         )}
-                      </details>
+                      </div>
                     )}
 
                     {msg.followups && msg.followups.length > 0 && (
@@ -427,7 +443,7 @@ const Chat = () => {
                   </>
                 )}
 
-                {msg.role === 'assistant' && i > 0 && (
+                {msg.role === 'assistant' && i > 0 && !msg.failedQuery && (
                   <div className="chat-feedback">
                     {ratedMessages.has(i) ? (
                       <span className="chat-feedback-thanks">✓ Thanks for your feedback!</span>
@@ -438,14 +454,14 @@ const Chat = () => {
                           onClick={() => handleFeedback(i, 'up')}
                           aria-label="This response was helpful"
                         >
-                          👍 Helpful
+                          Helpful
                         </button>
                         <button
                           className="feedback-btn down"
                           onClick={() => handleFeedback(i, 'down')}
                           aria-label="This response was not helpful"
                         >
-                          👎 Not helpful
+                          Not helpful
                         </button>
                       </>
                     )}
@@ -457,7 +473,7 @@ const Chat = () => {
 
           {loading && (
             <div className="chat-bubble-wrap assistant">
-              <div className="bubble-avatar" aria-hidden="true">🤖</div>
+              <div className="bubble-avatar" aria-hidden="true"><AssistantIcon /></div>
               <div className="chat-bubble assistant">
                 <div className="typing-indicator" role="status" aria-label="Assistant is typing">
                   <span /><span /><span />
@@ -591,7 +607,7 @@ const Chat = () => {
       aria-label="Give feedback about this tool"
       title="Feedback"
     >
-      💬
+      Feedback
     </button>
 
     {viewerDoc && (
