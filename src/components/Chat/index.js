@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Container, Segment, Button, Header } from 'semantic-ui-react';
 import { topicLabels } from '../../data/topicMap';
 import './Chat.css';
 
@@ -11,7 +10,6 @@ function FormattedText({ text }) {
   if (!text) return null;
   const lines = text.split('\n').filter((l) => l.trim() !== '');
 
-  // Group consecutive "- " lines into a <ul>
   const elements = [];
   let bulletBuffer = [];
 
@@ -54,6 +52,78 @@ function BoldText({ text }) {
   );
 }
 
+/** In-app document viewer modal */
+function DocumentViewerModal({ doc, onClose }) {
+  const [textContent, setTextContent] = useState(null);
+  const [textLoading, setTextLoading] = useState(false);
+
+  const isPdf = doc.filename.toLowerCase().endsWith('.pdf');
+  const isTxt = doc.filename.toLowerCase().endsWith('.txt');
+
+  const fileUrl = `${API_BASE}/documents/${doc.documentId}/file`;
+  const viewerUrl = isPdf && doc.pageNumber ? `${fileUrl}#page=${doc.pageNumber}` : fileUrl;
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  useEffect(() => {
+    if (!isTxt) return;
+    setTextLoading(true);
+    fetch(fileUrl)
+      .then((res) => res.text())
+      .then((t) => { setTextContent(t); setTextLoading(false); })
+      .catch(() => { setTextContent('Failed to load file.'); setTextLoading(false); });
+  }, [fileUrl, isTxt]);
+
+  return (
+    <div className="doc-viewer-overlay" onClick={onClose}>
+      <div className="doc-viewer-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="doc-viewer-header">
+          <span className="doc-viewer-title">
+            {doc.filename}
+            {doc.pageNumber && <span className="doc-viewer-page">Page {doc.pageNumber}</span>}
+          </span>
+          <div className="doc-viewer-actions">
+            <a className="doc-viewer-download" href={fileUrl} download={doc.filename}>
+              ⬇ Download
+            </a>
+            <button className="doc-viewer-close" onClick={onClose} aria-label="Close viewer">✕</button>
+          </div>
+        </div>
+        <div className="doc-viewer-body">
+          {isPdf ? (
+            <iframe src={viewerUrl} title={doc.filename} />
+          ) : isTxt ? (
+            textLoading
+              ? <div className="doc-viewer-loading">Loading…</div>
+              : <pre className="doc-viewer-text">{textContent}</pre>
+          ) : (
+            <div className="doc-viewer-fallback">
+              <p>This file type cannot be previewed in the browser.</p>
+              <a className="doc-viewer-download" href={fileUrl} download={doc.filename}>
+                ⬇ Download {doc.filename}
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Send icon SVG */
+function SendIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M22 2L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
 const INITIAL_MESSAGE = {
   role: 'assistant',
   content: 'Hi! Ask me anything about leave, benefits, or company policy.',
@@ -86,10 +156,11 @@ const Chat = () => {
   const [ratedMessages, setRatedMessages] = useState(new Set());
   const [expandedSources, setExpandedSources] = useState({});
   const [showScrollBtn, setShowScrollBtn] = useState(false);
+  const [viewerDoc, setViewerDoc] = useState(null);
   const [showFeedbackWidget, setShowFeedbackWidget] = useState(false);
   const [widgetCategory, setWidgetCategory] = useState('general');
   const [widgetComment, setWidgetComment] = useState('');
-  const [widgetStatus, setWidgetStatus] = useState('idle'); // idle | submitting | success | error
+  const [widgetStatus, setWidgetStatus] = useState('idle');
   const bottomRef = useRef(null);
   const textareaRef = useRef(null);
   const scrollRef = useRef(null);
@@ -116,16 +187,12 @@ const Chat = () => {
     }));
   }, []);
 
-  // Snap textarea to correct height on mount (eliminates browser default row padding)
-  useEffect(() => {
-    autoResize();
-  }, []);
+  useEffect(() => { autoResize(); }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
 
-  // Auto-resize textarea
   const autoResize = () => {
     const el = textareaRef.current;
     if (!el) return;
@@ -133,7 +200,6 @@ const Chat = () => {
     el.style.height = Math.min(el.scrollHeight, 150) + 'px';
   };
 
-  // Scroll indicator
   const handleScroll = () => {
     const el = scrollRef.current;
     if (!el) return;
@@ -148,10 +214,7 @@ const Chat = () => {
 
     setMessages(prev => [...prev, { role: 'user', content: text }]);
     setInput('');
-    // Reset textarea height after clear
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-    }
+    if (textareaRef.current) textareaRef.current.style.height = 'auto';
     setLoading(true);
 
     let assistantMsg = { role: 'assistant' };
@@ -168,7 +231,7 @@ const Chat = () => {
       assistantMsg.followups = data.followups || [];
       assistantMsg.sources = data.sources || [];
       assistantMsg.meta = data.meta || {};
-      assistantMsg.content = assistantMsg.summary; // backward compat for feedback
+      assistantMsg.content = assistantMsg.summary;
     } catch (err) {
       assistantMsg.content = 'Sorry, I could not reach the HR Helpdesk service. Please try again.';
       assistantMsg.summary = '';
@@ -188,7 +251,6 @@ const Chat = () => {
 
   const handleCardClick = (prompt) => {
     if (loading) return;
-    setInput(prompt);
     sendMessage(prompt);
   };
 
@@ -199,7 +261,6 @@ const Chat = () => {
     bug: 'Bug Report',
   };
 
-  // Close feedback widget on Escape
   useEffect(() => {
     if (!showFeedbackWidget) return;
     const onKey = (e) => { if (e.key === 'Escape') setShowFeedbackWidget(false); };
@@ -231,7 +292,6 @@ const Chat = () => {
 
   const handleFeedback = async (msgIndex, rating) => {
     setRatedMessages((prev) => new Set(prev).add(msgIndex));
-    // Auto-hide "Thanks" after 3 seconds
     setTimeout(() => {
       setRatedMessages((prev) => {
         const s = new Set(prev);
@@ -254,30 +314,28 @@ const Chat = () => {
         }),
       });
     } catch {
-      // Feedback is best-effort — don't disrupt the chat
+      // best-effort
     }
   };
 
   return (
     <>
-    <Container className="quiz-container page-container">
-      <Segment
-        style={{
-          background: 'rgba(255, 255, 255, 0.4)',
-          backdropFilter: 'blur(10px)',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
-          border: '1px solid rgba(34, 36, 38, 0.1)',
-          position: 'relative',
-        }}
-      >
-        <Header as="h2" style={{ color: '#1A1A1A', marginBottom: '0.25em' }}>
-          HR Helpdesk
-        </Header>
-        <p style={{ color: '#2C2C2C', marginTop: 0, marginBottom: '1em', fontSize: '0.9em' }}>
-          Ask me anything about HR policies, leave, or benefits.
-        </p>
+    <div className="chat-page">
+      <div className="chat-card">
 
-        {/* Message scroll area */}
+        {/* ── Header bar ── */}
+        <div className="chat-card-header">
+          <div className="chat-avatar" aria-hidden="true">🤖</div>
+          <div className="chat-header-info">
+            <p className="chat-header-title">HR Helpdesk</p>
+            <p className="chat-header-subtitle">
+              <span className="chat-status-dot" />
+              Online · Ask me anything
+            </p>
+          </div>
+        </div>
+
+        {/* ── Messages ── */}
         <div
           className="chat-scroll-area"
           ref={scrollRef}
@@ -289,8 +347,10 @@ const Chat = () => {
         >
           {messages.map((msg, i) => (
             <div key={i} className={`chat-bubble-wrap ${msg.role}`}>
+              {msg.role === 'assistant' && (
+                <div className="bubble-avatar" aria-hidden="true">🤖</div>
+              )}
               <div className={`chat-bubble ${msg.role}`}>
-                {/* Structured rendering for assistant messages */}
                 {msg.summary ? (
                   <>
                     <div className="chat-summary">
@@ -318,7 +378,16 @@ const Chat = () => {
                         <summary className="chat-sources-toggle">Sources ({msg.sources.length})</summary>
                         {msg.sources.slice(0, expandedSources[i] ? undefined : 2).map((src, si) => (
                           <div key={si} className="chat-source-card">
-                            <span className="chat-source-filename">{src.filename}</span>
+                            <button
+                              className="chat-source-filename chat-source-link"
+                              onClick={() => setViewerDoc({
+                                documentId: src.document_id,
+                                filename: src.filename,
+                                pageNumber: src.page_number,
+                              })}
+                            >
+                              {src.filename}
+                            </button>
                             {src.page_number && <span className="chat-source-page">p.{src.page_number}</span>}
                             <span className="chat-source-snippet">{src.snippet}</span>
                           </div>
@@ -347,11 +416,10 @@ const Chat = () => {
                 ) : (
                   <>
                     {msg.content}
-                    {/* Retry button for failed requests */}
                     {msg.failedQuery && (
                       <div style={{ marginTop: '0.5em' }}>
-                        <button className="followup-chip" onClick={() => sendMessage(msg.failedQuery)}>
-                          Retry
+                        <button className="retry-btn" onClick={() => sendMessage(msg.failedQuery)}>
+                          ↺ Retry
                         </button>
                       </div>
                     )}
@@ -361,7 +429,7 @@ const Chat = () => {
                 {msg.role === 'assistant' && i > 0 && (
                   <div className="chat-feedback">
                     {ratedMessages.has(i) ? (
-                      <span className="chat-feedback-thanks">Thanks for your feedback!</span>
+                      <span className="chat-feedback-thanks">✓ Thanks for your feedback!</span>
                     ) : (
                       <>
                         <button
@@ -369,14 +437,14 @@ const Chat = () => {
                           onClick={() => handleFeedback(i, 'up')}
                           aria-label="This response was helpful"
                         >
-                          &#128077; Helpful
+                          👍 Helpful
                         </button>
                         <button
                           className="feedback-btn down"
                           onClick={() => handleFeedback(i, 'down')}
                           aria-label="This response was not helpful"
                         >
-                          &#128078; Not helpful
+                          👎 Not helpful
                         </button>
                       </>
                     )}
@@ -388,11 +456,10 @@ const Chat = () => {
 
           {loading && (
             <div className="chat-bubble-wrap assistant">
+              <div className="bubble-avatar" aria-hidden="true">🤖</div>
               <div className="chat-bubble assistant">
-                <div className="typing-indicator" role="status">
-                  <span />
-                  <span />
-                  <span />
+                <div className="typing-indicator" role="status" aria-label="Assistant is typing">
+                  <span /><span /><span />
                 </div>
               </div>
             </div>
@@ -401,7 +468,7 @@ const Chat = () => {
           <div ref={bottomRef} />
         </div>
 
-        {/* Scroll-to-bottom floating button */}
+        {/* ── Scroll FAB (inside card, absolute) ── */}
         {showScrollBtn && (
           <button
             className="scroll-to-bottom"
@@ -412,9 +479,10 @@ const Chat = () => {
           </button>
         )}
 
-        {/* Suggestion cards — shown only on quiz_result entry before first message */}
+        {/* ── Suggestion cards ── */}
         {showCards && (
           <div className="suggestion-cards">
+            <span className="suggestion-cards-label">Suggested topics</span>
             {cardTopics.length > 0
               ? cardTopics.map((key) => (
                   <button
@@ -439,13 +507,13 @@ const Chat = () => {
           </div>
         )}
 
-        {/* Input bar */}
+        {/* ── Input bar ── */}
         <div className="chat-input-bar">
           <div className="chat-textarea-wrap">
             <textarea
               ref={textareaRef}
               className="chat-textarea"
-              placeholder="Type your question... (Enter to send, Shift+Enter for new line)"
+              placeholder="Ask about leave, benefits, policy…"
               value={input}
               onChange={(e) => { setInput(e.target.value); autoResize(); }}
               onKeyDown={handleKeyDown}
@@ -459,19 +527,20 @@ const Chat = () => {
               </span>
             )}
           </div>
-          <Button
-            className="purple-button"
+          <button
+            className="chat-send-btn"
             onClick={() => sendMessage()}
             disabled={loading || !input.trim()}
-            icon="send"
-            content="Send"
-            labelPosition="right"
-          />
+            aria-label="Send message"
+          >
+            <SendIcon />
+          </button>
         </div>
-      </Segment>
-    </Container>
 
-    {/* Floating feedback widget — fixed to viewport bottom-right */}
+      </div>
+    </div>
+
+    {/* ── Floating feedback widget ── */}
     {showFeedbackWidget && (
       <div className="feedback-widget-panel" role="dialog" aria-label="Quick feedback">
         <div className="feedback-widget-header">
@@ -500,7 +569,7 @@ const Chat = () => {
           placeholder="Anything else? (optional)"
           value={widgetComment}
           onChange={(e) => setWidgetComment(e.target.value)}
-          rows={8}
+          rows={4}
           disabled={widgetStatus === 'submitting' || widgetStatus === 'success'}
         />
         <button
@@ -523,6 +592,10 @@ const Chat = () => {
     >
       💬
     </button>
+
+    {viewerDoc && (
+      <DocumentViewerModal doc={viewerDoc} onClose={() => setViewerDoc(null)} />
+    )}
     </>
   );
 };
