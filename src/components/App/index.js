@@ -15,6 +15,9 @@ import { calculateGrade, calculateScore, shuffle } from '../../utils';
 import { isSupabaseConfigured, supabase } from '../../lib/supabaseClient';
 import quizConfig from '../../config/quizConfig';
 
+/** Wrap a page component in the shared Layout (Header + main). */
+const WithLayout = ({ children }) => <Layout>{children}</Layout>;
+
 const QuizApp = ({ config }) => {
   const [loading, setLoading] = useState(false);
 
@@ -120,7 +123,7 @@ const QuizApp = ({ config }) => {
     }, 2000);
   };
 
-  const replayQuiz = () => {
+  const replayQuiz = () => { // eslint-disable-line no-unused-vars
     setLoading(true);
     setLoadingMessage({
       title: 'Getting ready for round two.',
@@ -143,7 +146,7 @@ const QuizApp = ({ config }) => {
     }, 1000);
   };
 
-  const resetQuiz = () => {
+  const resetQuiz = () => { // eslint-disable-line no-unused-vars
     setLoading(true);
     setLoadingMessage({
       title: 'Loading the home screen.',
@@ -188,9 +191,9 @@ const App = () => {
     <Routes>
       <Route path="/hr" element={<QuizApp config={quizConfig.hr} />} />
       <Route path="/mctf" element={<QuizApp config={quizConfig.mctf} />} />
-      <Route path="/chat" element={<Chat />} />
-      <Route path="/feedback" element={<Feedback />} />
-      <Route path="/admin" element={<Admin />} />
+      <Route path="/chat" element={<WithLayout><Chat /></WithLayout>} />
+      <Route path="/feedback" element={<WithLayout><Feedback /></WithLayout>} />
+      <Route path="/admin" element={<WithLayout><Admin /></WithLayout>} />
       {/* Default redirect to HR quiz */}
       <Route path="/" element={<Navigate to="/hr" replace />} />
       <Route path="*" element={<Navigate to="/hr" replace />} />

@@ -185,6 +185,7 @@ const Chat = () => {
     window.dispatchEvent(new CustomEvent('telemetry', {
       detail: { event: 'chat_session_start', entrypoint },
     }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => { autoResize(); }, []);
