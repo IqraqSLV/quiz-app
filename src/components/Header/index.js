@@ -18,6 +18,8 @@ const headerStyle = {
 
 const logoStyle = {
   height: 32,
+  width: 'auto',
+  objectFit: 'contain',
   marginRight: '0.6em',
   verticalAlign: 'middle',
 };

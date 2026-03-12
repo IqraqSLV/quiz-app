@@ -5,7 +5,7 @@ const Offline = () => {
   window.addEventListener('online', () => window.location.reload());
 
   return (
-    <Container>
+    <Container className="page-container">
       <Segment placeholder>
         <Header icon>
           <Icon name="unlink" />

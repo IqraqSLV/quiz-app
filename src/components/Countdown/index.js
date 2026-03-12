@@ -10,6 +10,10 @@ const Countdown = ({ countdownTime, timeOver, setTimeTaken }) => {
   const [timerTime, setTimerTime] = useState(totalTime);
   const { hours, minutes, seconds } = timeConverter(timerTime);
 
+  // Calculate urgency levels
+  const isUrgent = timerTime <= 60000; // Last minute
+  const isVeryUrgent = timerTime <= 30000; // Last 30 seconds
+
   useEffect(() => {
     const timer = setInterval(() => {
       const newTime = timerTime - 1000;
@@ -38,21 +42,27 @@ const Countdown = ({ countdownTime, timeOver, setTimeTaken }) => {
     // eslint-disable-next-line
   }, [timerTime]);
 
+  const timerStyle = {
+    color: isUrgent ? '#FF6B35' : undefined,
+    fontWeight: isUrgent ? 'bold' : undefined,
+    animation: isVeryUrgent ? 'pulse 1s infinite' : undefined,
+  };
+
   return (
-    <Button.Group size="massive" basic floated="right">
+    <Button.Group size="small" basic floated="right">
       <Popup
         content="Hours"
-        trigger={<Button active>{hours}</Button>}
+        trigger={<Button active style={timerStyle}>{hours}</Button>}
         position="bottom left"
       />
       <Popup
         content="Minutes"
-        trigger={<Button active>{minutes}</Button>}
+        trigger={<Button active style={timerStyle}>{minutes}</Button>}
         position="bottom left"
       />
       <Popup
         content="Seconds"
-        trigger={<Button active>{seconds}</Button>}
+        trigger={<Button active style={timerStyle}>{seconds}</Button>}
         position="bottom left"
       />
     </Button.Group>
