@@ -1,14 +1,20 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 
 import Header from '../Header';
 
+const layoutStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  minHeight: '100vh',
+};
+
 const Layout = ({ children }) => {
   return (
-    <Fragment>
+    <div style={layoutStyle}>
       <Header />
       <main>{children}</main>
-    </Fragment>
+    </div>
   );
 };
 
