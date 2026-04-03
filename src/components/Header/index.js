@@ -53,7 +53,7 @@ const Header = () => {
 
   return (
     <Menu borderless style={headerStyle} className="site-header">
-      <Menu.Item header as={Link} to="/hr">
+      <Menu.Item header as={Link} to="/chat">
         <img src={logo} alt="Solarvest logo" style={logoStyle} />
         <span style={brandStyle}>Solarvest HR</span>
       </Menu.Item>
@@ -68,17 +68,11 @@ const Header = () => {
           {menuOpen ? '\u2715' : '\u2630'}
         </button>
         <div className={`header-nav-links ${menuOpen ? 'open' : ''}`}>
-          <Menu.Item as={Link} to="/hr" style={navStyle('/hr')} onClick={() => setMenuOpen(false)}>
-            HR Quiz
-          </Menu.Item>
           <Menu.Item as={Link} to="/chat" style={navStyle('/chat')} onClick={() => setMenuOpen(false)}>
             HR Chat
           </Menu.Item>
           <Menu.Item as={Link} to="/feedback" style={navStyle('/feedback')} onClick={() => setMenuOpen(false)}>
             Feedback
-          </Menu.Item>
-          <Menu.Item as={Link} to="/admin" style={navStyle('/admin')} onClick={() => setMenuOpen(false)}>
-            Admin
           </Menu.Item>
         </div>
       </Menu.Menu>

@@ -194,9 +194,9 @@ const App = () => {
       <Route path="/chat" element={<WithLayout><Chat /></WithLayout>} />
       <Route path="/feedback" element={<WithLayout><Feedback /></WithLayout>} />
       <Route path="/admin" element={<WithLayout><Admin /></WithLayout>} />
-      {/* Default redirect to HR quiz */}
-      <Route path="/" element={<Navigate to="/hr" replace />} />
-      <Route path="*" element={<Navigate to="/hr" replace />} />
+      {/* Default redirect to HR Chat */}
+      <Route path="/" element={<Navigate to="/chat" replace />} />
+      <Route path="*" element={<Navigate to="/chat" replace />} />
     </Routes>
   );
 };
