@@ -1,54 +1,31 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { topicLabels } from '../../data/topicMap';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import './Chat.css';
+import SLVLogo from './SLVLogo.png';
 
 const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
 
-/** Render a text string that may contain \n, "- " bullets, and **bold** markers. */
+/** Render markdown content from LLM output (bullets, bold, paragraphs). */
 function FormattedText({ text }) {
   if (!text) return null;
-  const lines = text.split('\n').filter((l) => l.trim() !== '');
-
-  const elements = [];
-  let bulletBuffer = [];
-
-  const flushBullets = () => {
-    if (bulletBuffer.length === 0) return;
-    elements.push(
-      <ul key={`ul-${elements.length}`} className="chat-bullet-list">
-        {bulletBuffer.map((b, i) => (
-          <li key={i}><BoldText text={b} /></li>
-        ))}
-      </ul>
-    );
-    bulletBuffer = [];
-  };
-
-  for (const line of lines) {
-    if (line.trimStart().startsWith('- ')) {
-      bulletBuffer.push(line.trimStart().slice(2));
-    } else {
-      flushBullets();
-      elements.push(<p key={`p-${elements.length}`}><BoldText text={line} /></p>);
-    }
-  }
-  flushBullets();
-
-  return <>{elements}</>;
-}
-
-/** Render **bold** markers within a line of text. */
-function BoldText({ text }) {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
   return (
-    <>
-      {parts.map((part, i) =>
-        part.startsWith('**') && part.endsWith('**')
-          ? <strong key={i}>{part.slice(2, -2)}</strong>
-          : part
-      )}
-    </>
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
+      components={{
+        ul: ({ node, ...props }) => <ul className="chat-bullet-list" {...props} />,
+        ol: ({ node, ...props }) => <ol className="chat-bullet-list" style={{ listStyleType: 'decimal' }} {...props} />,
+        strong: ({ node, ...props }) => <strong {...props} />,
+        p: ({ node, ...props }) => <p {...props} />,
+        a: ({ node, children, ...props }) => (
+          <a target="_blank" rel="noopener noreferrer" {...props}>{children}</a>
+        ),
+      }}
+    >
+      {text}
+    </ReactMarkdown>
   );
 }
 
@@ -56,18 +33,53 @@ function BoldText({ text }) {
 function DocumentViewerModal({ doc, onClose }) {
   const [textContent, setTextContent] = useState(null);
   const [textLoading, setTextLoading] = useState(false);
+  const [pdfViewerUrl, setPdfViewerUrl] = useState(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfError, setPdfError] = useState('');
 
   const isPdf = doc.filename.toLowerCase().endsWith('.pdf');
   const isTxt = doc.filename.toLowerCase().endsWith('.txt');
 
   const fileUrl = `${API_BASE}/documents/${doc.documentId}/file`;
-  const viewerUrl = isPdf && doc.pageNumber ? `${fileUrl}#page=${doc.pageNumber}` : fileUrl;
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
+
+  useEffect(() => {
+    if (!isPdf) return undefined;
+
+    const controller = new AbortController();
+    let blobUrl = null;
+
+    setPdfLoading(true);
+    setPdfError('');
+    setPdfViewerUrl(null);
+
+    // Use a blob URL so the preview does not depend on iframe response headers.
+    fetch(fileUrl, { signal: controller.signal })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.blob();
+      })
+      .then((blob) => {
+        blobUrl = URL.createObjectURL(blob);
+        setPdfViewerUrl(doc.pageNumber ? `${blobUrl}#page=${doc.pageNumber}` : blobUrl);
+        setPdfLoading(false);
+      })
+      .catch(() => {
+        if (controller.signal.aborted) return;
+        setPdfError('Failed to load PDF preview.');
+        setPdfLoading(false);
+      });
+
+    return () => {
+      controller.abort();
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+    };
+  }, [doc.pageNumber, fileUrl, isPdf]);
 
   useEffect(() => {
     if (!isTxt) return;
@@ -95,7 +107,18 @@ function DocumentViewerModal({ doc, onClose }) {
         </div>
         <div className="doc-viewer-body">
           {isPdf ? (
-            <iframe src={viewerUrl} title={doc.filename} />
+            pdfLoading ? (
+              <div className="doc-viewer-loading">Loading PDF...</div>
+            ) : pdfError ? (
+              <div className="doc-viewer-fallback">
+                <p>{pdfError}</p>
+                <a className="doc-viewer-download" href={fileUrl} download={doc.filename}>
+                  â¬‡ Download {doc.filename}
+                </a>
+              </div>
+            ) : pdfViewerUrl ? (
+              <iframe src={pdfViewerUrl} title={doc.filename} />
+            ) : null
           ) : isTxt ? (
             textLoading
               ? <div className="doc-viewer-loading">Loading…</div>
@@ -126,11 +149,7 @@ function SendIcon() {
 
 function AssistantIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" width="20" height="20">
-      <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" fill="#7B4397" opacity="0.15"/>
-      <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" stroke="#7B4397" strokeWidth="1.5" strokeLinejoin="round"/>
-      <path d="M9 12l2 2 4-4" stroke="#7B4397" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
+    <img src={SLVLogo} alt="Solarvest" width="20" height="20" style={{ borderRadius: '50%', objectFit: 'contain', backgroundColor: '#fff' }} />
   );
 }
 
@@ -168,10 +187,6 @@ const Chat = () => {
   const [expandedSources, setExpandedSources] = useState({});
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [viewerDoc, setViewerDoc] = useState(null);
-  const [showFeedbackWidget, setShowFeedbackWidget] = useState(false);
-  const [widgetCategory, setWidgetCategory] = useState('general');
-  const [widgetComment, setWidgetComment] = useState('');
-  const [widgetStatus, setWidgetStatus] = useState('idle');
   const bottomRef = useRef(null);
   const textareaRef = useRef(null);
   const scrollRef = useRef(null);
@@ -271,41 +286,6 @@ const Chat = () => {
     sendMessage(prompt);
   };
 
-  const WIDGET_CATEGORY_LABELS = {
-    general: 'General',
-    ui: 'UI Improvement',
-    content: 'Content Quality',
-    bug: 'Bug Report',
-  };
-
-  useEffect(() => {
-    if (!showFeedbackWidget) return;
-    const onKey = (e) => { if (e.key === 'Escape') setShowFeedbackWidget(false); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [showFeedbackWidget]);
-
-  const handleWidgetSubmit = async () => {
-    setWidgetStatus('submitting');
-    const comment = widgetComment.trim() || `${WIDGET_CATEGORY_LABELS[widgetCategory]} feedback`;
-    try {
-      const res = await fetch(`${API_BASE}/feedback/general`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ category: widgetCategory, comment }),
-      });
-      if (!res.ok) throw new Error();
-      setWidgetStatus('success');
-      setTimeout(() => {
-        setShowFeedbackWidget(false);
-        setWidgetStatus('idle');
-        setWidgetCategory('general');
-        setWidgetComment('');
-      }, 2000);
-    } catch {
-      setWidgetStatus('error');
-    }
-  };
 
   const handleFeedback = async (msgIndex, rating) => {
     setRatedMessages((prev) => new Set(prev).add(msgIndex));
@@ -383,16 +363,14 @@ const Chat = () => {
                       <details className="chat-details" open>
                         <summary className="chat-details-toggle">Full answer</summary>
                         <div className="chat-details-body">
-                          {msg.details.split('\n').filter(Boolean).map((para, pi) => (
-                            <p key={pi}>{para}</p>
-                          ))}
+                          <FormattedText text={msg.details} />
                         </div>
                       </details>
                     )}
 
-                    {msg.sources && msg.sources.length > 0 && (
-                      <div className="chat-sources-panel chat-sources-visible">
-                        <div className="chat-sources-heading">Sources ({msg.sources.length})</div>
+                    {msg.sources && msg.sources.length > 0 && (msg.meta?.top_reranker_score ?? 1) >= 0.10 && (
+                      <details className="chat-sources-panel">
+                        <summary className="chat-sources-toggle">Sources ({msg.sources.length})</summary>
                         {msg.sources.slice(0, expandedSources[i] ? undefined : 3).map((src, si) => (
                           <div key={si} className="chat-source-card">
                             <button
@@ -417,7 +395,7 @@ const Chat = () => {
                             Show {msg.sources.length - 3} more
                           </button>
                         )}
-                      </div>
+                      </details>
                     )}
 
                     {msg.followups && msg.followups.length > 0 && (
@@ -556,59 +534,6 @@ const Chat = () => {
 
       </div>
     </div>
-
-    {/* ── Floating feedback widget ── */}
-    {showFeedbackWidget && (
-      <div className="feedback-widget-panel" role="dialog" aria-label="Quick feedback">
-        <div className="feedback-widget-header">
-          <span>Quick Feedback</span>
-          <button
-            className="feedback-widget-close"
-            onClick={() => setShowFeedbackWidget(false)}
-            aria-label="Close feedback"
-          >
-            ✕
-          </button>
-        </div>
-        <select
-          className="feedback-widget-select"
-          value={widgetCategory}
-          onChange={(e) => setWidgetCategory(e.target.value)}
-          disabled={widgetStatus === 'submitting' || widgetStatus === 'success'}
-        >
-          <option value="general">General</option>
-          <option value="ui">UI Improvement</option>
-          <option value="content">Content Quality</option>
-          <option value="bug">Bug Report</option>
-        </select>
-        <textarea
-          className="feedback-widget-textarea"
-          placeholder="Anything else? (optional)"
-          value={widgetComment}
-          onChange={(e) => setWidgetComment(e.target.value)}
-          rows={4}
-          disabled={widgetStatus === 'submitting' || widgetStatus === 'success'}
-        />
-        <button
-          className="feedback-widget-submit"
-          onClick={handleWidgetSubmit}
-          disabled={widgetStatus === 'submitting' || widgetStatus === 'success'}
-        >
-          {widgetStatus === 'submitting' ? 'Sending…' : widgetStatus === 'success' ? '✓ Thanks!' : 'Submit'}
-        </button>
-        {widgetStatus === 'error' && (
-          <p className="feedback-widget-error">Couldn't send — try again</p>
-        )}
-      </div>
-    )}
-    <button
-      className="feedback-widget-btn"
-      onClick={() => { setShowFeedbackWidget(prev => !prev); setWidgetStatus('idle'); }}
-      aria-label="Give feedback about this tool"
-      title="Feedback"
-    >
-      Feedback
-    </button>
 
     {viewerDoc && (
       <DocumentViewerModal doc={viewerDoc} onClose={() => setViewerDoc(null)} />
