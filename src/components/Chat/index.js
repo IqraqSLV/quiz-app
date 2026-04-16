@@ -261,7 +261,7 @@ const Chat = () => {
       assistantMsg.summary = data.summary || data.answer || '(No answer returned)';
       assistantMsg.details = data.details || '';
       assistantMsg.followups = data.followups || [];
-      assistantMsg.sources = data.sources || [];
+      assistantMsg.sources = (data.sources || []).filter(s => !s.filename?.toLowerCase().endsWith('.txt'));
       assistantMsg.meta = data.meta || {};
       assistantMsg.contact = data.contact || null;
       assistantMsg.form = data.form || null;
