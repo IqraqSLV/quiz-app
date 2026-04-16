@@ -1,19 +1,25 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import Header from '../Header';
-
 const layoutStyle = {
   display: 'flex',
   flexDirection: 'column',
-  minHeight: '100vh',
+  height: '100vh',
+  overflow: 'hidden',
+};
+
+const mainStyle = {
+  flex: 1,
+  minHeight: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  overflow: 'hidden',
 };
 
 const Layout = ({ children }) => {
   return (
     <div style={layoutStyle}>
-      <Header />
-      <main>{children}</main>
+      <main style={mainStyle}>{children}</main>
     </div>
   );
 };

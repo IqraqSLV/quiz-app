@@ -326,7 +326,7 @@ const Chat = () => {
         <div className="chat-card-header">
           <div className="chat-avatar" aria-hidden="true"><AssistantIcon /></div>
           <div className="chat-header-info">
-            <p className="chat-header-title">HR Policy Assistant</p>
+            <p className="chat-header-title">Solarvest HR Assistant</p>
             <p className="chat-header-subtitle">
               <span className="chat-status-dot" />
               Sourced from official Solarvest HR policies
@@ -417,27 +417,34 @@ const Chat = () => {
 
                     {msg.form && (
                       <div className="chat-form-card">
-                        <div className="chat-form-icon">📎</div>
-                        <div className="chat-form-info">
-                          <strong className="chat-form-name">{msg.form.label}</strong>
-                          <span className="chat-form-desc">{msg.form.description}</span>
-                          <div className="chat-form-actions">
-                            <button
-                              className="chat-form-btn"
-                              onClick={() => setViewerDoc({
-                                documentId: msg.form.document_id,
-                                filename: msg.form.filename,
-                              })}
-                            >
-                              View
-                            </button>
-                            <a
-                              className="chat-form-btn"
-                              href={`${API_BASE}/documents/${msg.form.document_id}/file`}
-                              download={msg.form.filename}
-                            >
-                              Download
-                            </a>
+                        <div className="chat-form-header">RELATED FORM</div>
+                        <div className="chat-form-body">
+                          <svg className="chat-form-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M11 2H5a1 1 0 00-1 1v14a1 1 0 001 1h10a1 1 0 001-1V7l-5-5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+                            <path d="M11 2v5h5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
+                            <path d="M7 11h6M7 14h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                          </svg>
+                          <div className="chat-form-info">
+                            <strong className="chat-form-name">{msg.form.label}</strong>
+                            <span className="chat-form-desc">{msg.form.description}</span>
+                            <div className="chat-form-actions">
+                              <button
+                                className="chat-form-btn"
+                                onClick={() => setViewerDoc({
+                                  documentId: msg.form.document_id,
+                                  filename: msg.form.filename,
+                                })}
+                              >
+                                View
+                              </button>
+                              <a
+                                className="chat-form-btn"
+                                href={`${API_BASE}/documents/${msg.form.document_id}/file`}
+                                download={msg.form.filename}
+                              >
+                                ↓ Download
+                              </a>
+                            </div>
                           </div>
                         </div>
                       </div>

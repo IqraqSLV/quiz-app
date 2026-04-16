@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Menu } from 'semantic-ui-react';
 import logo from '../../images/solarvest-logo.png';
 
@@ -31,53 +30,13 @@ const brandStyle = {
   verticalAlign: 'middle',
 };
 
-const hamburgerStyle = {
-  display: 'none',
-  background: 'none',
-  border: 'none',
-  fontSize: '1.4em',
-  cursor: 'pointer',
-  padding: '0.3em 0.5em',
-  color: '#2C2C2C',
-};
-
-const Header = () => {
-  const { pathname } = useLocation();
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  const navStyle = (path) => ({
-    fontWeight: pathname === path ? 700 : 600,
-    color: pathname === path ? '#7B4397' : '#2C2C2C',
-    borderBottom: pathname === path ? '2px solid #7B4397' : 'none',
-  });
-
-  return (
-    <Menu borderless style={headerStyle} className="site-header">
-      <Menu.Item header as={Link} to="/chat">
-        <img src={logo} alt="Solarvest logo" style={logoStyle} />
-        <span style={brandStyle}>Solarvest HR</span>
-      </Menu.Item>
-
-      <Menu.Menu position="right">
-        <button
-          className="header-hamburger"
-          style={hamburgerStyle}
-          onClick={() => setMenuOpen((v) => !v)}
-          aria-label="Toggle navigation"
-        >
-          {menuOpen ? '\u2715' : '\u2630'}
-        </button>
-        <div className={`header-nav-links ${menuOpen ? 'open' : ''}`}>
-          <Menu.Item as={Link} to="/chat" style={navStyle('/chat')} onClick={() => setMenuOpen(false)}>
-            HR Chat
-          </Menu.Item>
-          <Menu.Item as={Link} to="/feedback" style={navStyle('/feedback')} onClick={() => setMenuOpen(false)}>
-            Feedback
-          </Menu.Item>
-        </div>
-      </Menu.Menu>
-    </Menu>
-  );
-};
+const Header = () => (
+  <Menu borderless style={headerStyle} className="site-header">
+    <Menu.Item header as={Link} to="/chat">
+      <img src={logo} alt="Solarvest logo" style={logoStyle} />
+      <span style={brandStyle}>Solarvest HR</span>
+    </Menu.Item>
+  </Menu>
+);
 
 export default Header;
