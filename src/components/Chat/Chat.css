@@ -235,23 +235,6 @@
   color: #5a2d82;
 }
 
-/* ── Confidence badge ── */
-.confidence-badge {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.62em;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 20px;
-  margin-left: 6px;
-  vertical-align: middle;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.confidence-high   { background: #d1f0db; color: #1a6b3a; }
-.confidence-medium { background: #fef3c7; color: #92400e; }
-.confidence-low    { background: #fee2e2; color: #991b1b; }
 
 /* ── Details accordion ── */
 .chat-details {
@@ -384,6 +367,122 @@
 .chat-sources-more:hover {
   opacity: 0.75;
   text-decoration: underline;
+}
+
+/* ── Contact card (P5-16) ── */
+.chat-contact-card {
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: #e8f4fd;
+  border: 1px solid #b3d9f7;
+  border-radius: 10px;
+  font-size: 0.82em;
+}
+
+.chat-contact-label {
+  font-size: 0.78em;
+  font-weight: 700;
+  color: #1a6fa8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
+.chat-contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chat-contact-name {
+  font-size: 0.95em;
+  color: #0d3c61;
+}
+
+.chat-contact-role {
+  font-size: 0.82em;
+  color: #4a7fa5;
+}
+
+.chat-contact-email {
+  font-size: 0.85em;
+  color: #1a6fa8;
+  text-decoration: none;
+  margin-top: 2px;
+}
+
+.chat-contact-email:hover {
+  text-decoration: underline;
+}
+
+.chat-contact-phone {
+  font-size: 0.85em;
+  color: #1a6fa8;
+  text-decoration: none;
+}
+
+.chat-contact-phone:hover {
+  text-decoration: underline;
+}
+
+/* ── Form card (P5-17) ── */
+.chat-form-card {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: #e8fdf0;
+  border: 1px solid #b3f7d1;
+  border-radius: 10px;
+  font-size: 0.82em;
+}
+
+.chat-form-icon {
+  font-size: 1.3em;
+  flex-shrink: 0;
+}
+
+.chat-form-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.chat-form-name {
+  font-size: 0.95em;
+  color: #0d4a2a;
+}
+
+.chat-form-desc {
+  font-size: 0.82em;
+  color: #4a8a6a;
+}
+
+.chat-form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.chat-form-btn {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #1a8a4a;
+  background: transparent;
+  color: #1a8a4a;
+  text-decoration: none;
+  font-size: 0.85em;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.chat-form-btn:hover {
+  background: #1a8a4a;
+  color: #fff;
 }
 
 /* ── Follow-up chips ── */

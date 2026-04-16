@@ -263,6 +263,8 @@ const Chat = () => {
       assistantMsg.followups = data.followups || [];
       assistantMsg.sources = data.sources || [];
       assistantMsg.meta = data.meta || {};
+      assistantMsg.contact = data.contact || null;
+      assistantMsg.form = data.form || null;
       assistantMsg.content = assistantMsg.summary;
     } catch (err) {
       assistantMsg.content = 'Sorry, I could not reach the HR Helpdesk service. Please try again.';
@@ -352,11 +354,6 @@ const Chat = () => {
                   <>
                     <div className="chat-summary">
                       <FormattedText text={msg.summary} />
-                      {msg.meta?.confidence && (
-                        <span className={`confidence-badge confidence-${msg.meta.confidence}`}>
-                          {msg.meta.confidence}
-                        </span>
-                      )}
                     </div>
 
                     {msg.details && msg.details !== msg.summary && (
@@ -396,6 +393,54 @@ const Chat = () => {
                           </button>
                         )}
                       </details>
+                    )}
+
+                    {msg.contact && (
+                      <div className="chat-contact-card">
+                        <div className="chat-contact-label">Need further help? Reach out to:</div>
+                        <div className="chat-contact-info">
+                          <strong className="chat-contact-name">{msg.contact.name}</strong>
+                          <span className="chat-contact-role">
+                            {msg.contact.designation} — {msg.contact.function_label}
+                          </span>
+                          <a href={`mailto:${msg.contact.email}`} className="chat-contact-email">
+                            {msg.contact.email}
+                          </a>
+                          {msg.contact.phone && (
+                            <a href={`tel:${msg.contact.phone.replace(/\s/g, '')}`} className="chat-contact-phone">
+                              {msg.contact.phone}
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {msg.form && (
+                      <div className="chat-form-card">
+                        <div className="chat-form-icon">📎</div>
+                        <div className="chat-form-info">
+                          <strong className="chat-form-name">{msg.form.label}</strong>
+                          <span className="chat-form-desc">{msg.form.description}</span>
+                          <div className="chat-form-actions">
+                            <button
+                              className="chat-form-btn"
+                              onClick={() => setViewerDoc({
+                                documentId: msg.form.document_id,
+                                filename: msg.form.filename,
+                              })}
+                            >
+                              View
+                            </button>
+                            <a
+                              className="chat-form-btn"
+                              href={`${API_BASE}/documents/${msg.form.document_id}/file`}
+                              download={msg.form.filename}
+                            >
+                              Download
+                            </a>
+                          </div>
+                        </div>
+                      </div>
                     )}
 
                     {msg.followups && msg.followups.length > 0 && (
